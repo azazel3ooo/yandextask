@@ -51,6 +51,7 @@ func TestSetter(t *testing.T) {
 
 		resp, _ := app.Test(req, 5)
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		resp.Body.Close()
 	}
 }
 
@@ -105,5 +106,6 @@ func TestGetter(t *testing.T) {
 		if resp.StatusCode == http.StatusTemporaryRedirect {
 			assert.Equalf(t, test.url, resp.Header.Get("Location"), test.description)
 		}
+		resp.Body.Close()
 	}
 }
