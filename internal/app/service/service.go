@@ -60,7 +60,7 @@ func Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	return c.Status(http.StatusCreated).SendString(cfg.BaseUrl + models.Store.Set(u.String()))
+	return c.Status(http.StatusCreated).SendString(cfg.BaseUrl + "/" + models.Store.Set(u.String()))
 }
 
 func JSONSetter(c *fiber.Ctx) error {
