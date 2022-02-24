@@ -15,7 +15,7 @@ import (
 
 type Config struct {
 	ServerAddress string `env:"SERVER_ADDRESS"`
-	Base          string `env:"BASE_URL"`
+	URLBase       string `env:"BASE_URL"`
 }
 
 var cfg Config
@@ -60,7 +60,7 @@ func Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	return c.Status(http.StatusCreated).SendString(cfg.Base + "/" + models.Store.Set(u.String()))
+	return c.Status(http.StatusCreated).SendString(cfg.URLBase + "/" + models.Store.Set(u.String()))
 }
 
 func JSONSetter(c *fiber.Ctx) error {
@@ -76,6 +76,6 @@ func JSONSetter(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(models.Response{
-		Result: cfg.Base + "/" + models.Store.Set(req.Addr),
+		Result: cfg.URLBase + "/" + models.Store.Set(req.Addr),
 	})
 }
