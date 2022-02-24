@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +14,7 @@ import (
 )
 
 func TestSetter(t *testing.T) {
+	t.Parallel()
 	type set struct {
 		description  string
 		route        string
@@ -22,21 +24,21 @@ func TestSetter(t *testing.T) {
 
 	tests := []set{
 		{
-			description:  "get HTTP status 307",
+			description:  "get HTTP status 201",
 			route:        "/",
-			expectedCode: 201,
+			expectedCode: http.StatusCreated,
 			url:          "https://music.yandex.ru/home",
 		},
 		{
 			description:  "get HTTP status 400 with invalid url",
 			route:        "/",
-			expectedCode: 400,
+			expectedCode: http.StatusBadRequest,
 			url:          "Q_q",
 		},
 		{
 			description:  "get HTTP status 404 with unknown route",
 			route:        "/crash_me",
-			expectedCode: 404,
+			expectedCode: http.StatusNotFound,
 			url:          "https://yandex.ru",
 		},
 	}
@@ -55,7 +57,58 @@ func TestSetter(t *testing.T) {
 	}
 }
 
+func TestJSONSetter(t *testing.T) {
+	t.Parallel()
+	type set struct {
+		description  string
+		route        string
+		expectedCode int
+		json         string
+		error        string
+	}
+
+	tests := []set{
+		{
+			description:  "get HTTP status 201",
+			route:        "/api/shorten",
+			expectedCode: http.StatusCreated,
+			json:         "{\"url\": \"https://music.yandex.ru/home\"}",
+		},
+		{
+			description:  "get HTTP status 400 with invalid url",
+			route:        "/api/shorten",
+			expectedCode: http.StatusBadRequest,
+			json:         "{\"url\": \"<some_url>\"}",
+			error:        "Invalid URL",
+		},
+		{
+			description:  "get HTTP status 400 with invalid json",
+			route:        "/api/shorten",
+			expectedCode: http.StatusBadRequest,
+			json:         "{\"url\": \"<some_url>\"",
+			error:        "Invalid json",
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/api/shorten", JSONSetter)
+
+	for _, test := range tests {
+		b := bytes.NewBuffer([]byte(test.json))
+		req := httptest.NewRequest(http.MethodPost, test.route, b)
+
+		resp, _ := app.Test(req, 5)
+		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		if test.expectedCode != http.StatusCreated {
+			e, _ := io.ReadAll(resp.Body)
+			assert.Equalf(t, test.error, string(e), test.description)
+		}
+		resp.Body.Close()
+	}
+}
+
 func TestGetter(t *testing.T) {
+	t.Parallel()
 	type set struct {
 		description  string
 		route        string
@@ -67,19 +120,19 @@ func TestGetter(t *testing.T) {
 		{
 			description:  "get success redirect 307",
 			route:        "/" + models.Store.Set("https://yandex.ru"),
-			expectedCode: 307,
+			expectedCode: http.StatusTemporaryRedirect,
 			url:          "https://yandex.ru",
 		},
 		{
 			description:  "get HTTP status 400 with invalid id",
 			route:        "/a0dfasfa",
-			expectedCode: 400,
+			expectedCode: http.StatusBadRequest,
 			url:          "Q_q",
 		},
 		{
-			description:  "get HTTP status 404 with unknown id",
+			description:  "get HTTP status 400 with unknown id",
 			route:        "/" + uuid.New().String(),
-			expectedCode: 400,
+			expectedCode: http.StatusBadRequest,
 			url:          "https://yandex.ru",
 		},
 	}

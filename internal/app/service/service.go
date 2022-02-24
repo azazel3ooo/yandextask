@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ func StartService() {
 
 	app.Get("/:id", Getter)
 	app.Post("/", Setter)
+	app.Post("/api/shorten", JSONSetter)
 
 	log.Fatal(app.Listen(config.Addr))
 }
@@ -41,4 +43,21 @@ func Setter(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).SendString(models.Store.Set(u.String()))
+}
+
+func JSONSetter(c *fiber.Ctx) error {
+	body := c.Body()
+	var req models.Request
+	err := json.Unmarshal(body, &req)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).SendString("Invalid json")
+	}
+	_, err = url.ParseRequestURI(req.Url)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
+	}
+
+	return c.Status(http.StatusCreated).JSON(models.Response{
+		Result: models.Store.Set(req.Url),
+	})
 }
