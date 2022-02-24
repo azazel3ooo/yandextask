@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/google/uuid"
 	"log"
 	"net/http"
@@ -11,14 +13,17 @@ import (
 )
 
 func StartService() {
-	config := models.InitConfig()
+	Conf := models.InitConfig()
 	app := fiber.New()
-
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${status} - ${latency} ${method} ${path} ${resBody}\n",
+	}))
 	app.Get("/:id", Getter)
 	app.Post("/", Setter)
 	app.Post("/api/shorten", JSONSetter)
 
-	log.Fatal(app.Listen(config.Addr))
+	log.Fatal(app.Listen(Conf.Addr))
 }
 
 func Getter(c *fiber.Ctx) error {
@@ -31,7 +36,7 @@ func Getter(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
-	c.Location(s)
+	c.Set("Location", s)
 	return c.SendStatus(http.StatusTemporaryRedirect)
 }
 
@@ -52,12 +57,12 @@ func JSONSetter(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid json")
 	}
-	_, err = url.ParseRequestURI(req.Url)
+	_, err = url.ParseRequestURI(req.Addr)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 	}
 
 	return c.Status(http.StatusCreated).JSON(models.Response{
-		Result: models.Store.Set(req.Url),
+		Result: models.Store.Set(req.Addr),
 	})
 }

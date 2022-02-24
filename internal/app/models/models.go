@@ -11,7 +11,7 @@ type Storage struct {
 }
 
 type Request struct {
-	Url string `json:"url"`
+	Addr string `json:"url"`
 }
 
 type Response struct {
