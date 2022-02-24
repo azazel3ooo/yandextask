@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"github.com/azazel3ooo/yandextask/internal/app/models"
+	"github.com/caarlos0/env/v6"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -12,8 +13,20 @@ import (
 	"net/url"
 )
 
+type Config struct {
+	ServerAddress string `env:"SERVER_ADDRESS"`
+	BaseUrl       string `env:"BASE_URL"`
+}
+
+var cfg Config
+
 func StartService() {
-	Conf := models.InitConfig()
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//Conf := models.InitConfig()
 	app := fiber.New()
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(logger.New(logger.Config{
@@ -23,7 +36,7 @@ func StartService() {
 	app.Post("/", Setter)
 	app.Post("/api/shorten", JSONSetter)
 
-	log.Fatal(app.Listen(Conf.Addr))
+	log.Fatal(app.Listen(cfg.ServerAddress))
 }
 
 func Getter(c *fiber.Ctx) error {
@@ -47,7 +60,7 @@ func Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	return c.Status(http.StatusCreated).SendString(models.Store.Set(u.String()))
+	return c.Status(http.StatusCreated).SendString(cfg.BaseUrl + models.Store.Set(u.String()))
 }
 
 func JSONSetter(c *fiber.Ctx) error {
@@ -63,6 +76,6 @@ func JSONSetter(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(models.Response{
-		Result: models.Store.Set(req.Addr),
+		Result: cfg.BaseUrl + models.Store.Set(req.Addr),
 	})
 }
