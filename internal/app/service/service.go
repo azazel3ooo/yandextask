@@ -74,7 +74,7 @@ func JSONSetter(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 	}
-
+	c.Set("Content-Type", "application/json")
 	return c.Status(http.StatusCreated).JSON(models.Response{
 		Result: cfg.URLBase + "/" + models.Store.Set(req.Addr),
 	})
