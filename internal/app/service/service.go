@@ -76,6 +76,6 @@ func JSONSetter(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(models.Response{
-		Result: cfg.BaseUrl + models.Store.Set(req.Addr),
+		Result: cfg.UrlBase + models.Store.Set(req.Addr),
 	})
 }
