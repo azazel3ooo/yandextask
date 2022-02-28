@@ -15,8 +15,8 @@ func StartService() {
 		cfg   models.Config
 	)
 
-	flag.StringVar(&cfg.ServerAddress, "a", ":8080", "Server address")
-	flag.StringVar(&cfg.URLBase, "b", "http://127.0.0.1", "Base url")
+	flag.StringVar(&cfg.ServerAddress, "a", "8080", "Server address")
+	flag.StringVar(&cfg.URLBase, "b", "127.0.0.1", "Base url")
 	flag.StringVar(&cfg.FileStoragePath, "c", "./tmp/tmp.txt", "Filepath for backup")
 	flag.Parse()
 
@@ -41,5 +41,5 @@ func StartService() {
 	s.App.Get("/:id", s.Getter)
 	s.App.Post("/", s.Setter)
 	s.App.Post("/api/shorten", s.JSONSetter)
-	log.Fatal(s.App.Listen(s.Cfg.ServerAddress))
+	log.Fatal(s.App.Listen(":" + s.Cfg.ServerAddress))
 }
