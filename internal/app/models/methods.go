@@ -14,15 +14,16 @@ import (
 )
 
 func (c *Config) Init() error {
-	flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "Server address")
-	flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8080", "Base url")
-	flag.StringVar(&c.FileStoragePath, "c", "./tmp/tmp.txt", "Filepath for backup")
-	flag.Parse()
-
 	err := env.Parse(c)
 	if err != nil {
 		return err
 	}
+
+	flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "Server address")
+	flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8080", "Base url")
+	flag.StringVar(&c.FileStoragePath, "f", "./tmp/tmp.txt", "Filepath for backup")
+	flag.Parse()
+
 	return nil
 }
 
