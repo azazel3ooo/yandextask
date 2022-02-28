@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -32,5 +31,5 @@ func StartService() {
 	s.App.Get("/:id", s.Getter)
 	s.App.Post("/", s.Setter)
 	s.App.Post("/api/shorten", s.JSONSetter)
-	log.Fatal(s.App.Listen(fmt.Sprintf(":%d", s.Cfg.ServerAddress)))
+	log.Fatal(s.App.Listen(s.Cfg.ServerAddress))
 }

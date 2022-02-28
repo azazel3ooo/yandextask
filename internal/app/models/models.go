@@ -9,7 +9,7 @@ type Server struct {
 }
 
 type Config struct {
-	ServerAddress   int    `env:"SERVER_ADDRESS"`
+	ServerAddress   string `env:"SERVER_ADDRESS"`
 	URLBase         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 }

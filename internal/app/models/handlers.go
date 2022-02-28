@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"net/http"
@@ -30,8 +29,8 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	host := fmt.Sprintf("%s:%d", s.Cfg.URLBase, s.Cfg.ServerAddress)
-	return c.Status(http.StatusCreated).SendString(host + "/" + s.Storage.Set(u.String(), s.Cfg.FileStoragePath))
+	//host := fmt.Sprintf("%s:%s", s.Cfg.URLBase, s.Cfg.ServerAddress)
+	return c.Status(http.StatusCreated).SendString(s.Cfg.URLBase + "/" + s.Storage.Set(u.String(), s.Cfg.FileStoragePath))
 }
 
 func (s *Server) JSONSetter(c *fiber.Ctx) error {
@@ -46,9 +45,9 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 	}
 
-	host := fmt.Sprintf("%s:%d", s.Cfg.URLBase, s.Cfg.ServerAddress)
+	//host := fmt.Sprintf("%s:%s", s.Cfg.URLBase, s.Cfg.ServerAddress)
 	c.Set("Content-Type", "application/json")
 	return c.Status(http.StatusCreated).JSON(Response{
-		Result: host + "/" + s.Storage.Set(req.Addr, s.Cfg.FileStoragePath),
+		Result: s.Cfg.URLBase + "/" + s.Storage.Set(req.Addr, s.Cfg.FileStoragePath),
 	})
 }
