@@ -14,7 +14,7 @@ import (
 )
 
 func (c *Config) Init() error {
-	flag.StringVar(&c.ServerAddress, "a", "8080", "Server address")
+	flag.IntVar(&c.ServerAddress, "a", 8080, "Server address")
 	flag.StringVar(&c.URLBase, "b", "http://127.0.0.1", "Base url")
 	flag.StringVar(&c.FileStoragePath, "c", "./tmp/tmp.txt", "Filepath for backup")
 	flag.Parse()
