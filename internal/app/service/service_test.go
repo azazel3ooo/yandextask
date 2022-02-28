@@ -5,6 +5,7 @@ import (
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/google/uuid"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,6 +22,20 @@ func TestSetter(t *testing.T) {
 		expectedCode int
 		url          string
 	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+	)
+
+	err := cfg.Init()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := models.NewServer(&store, cfg, tempApp)
+	s.App.Post("/", s.Setter)
 
 	tests := []set{
 		{
@@ -43,17 +58,17 @@ func TestSetter(t *testing.T) {
 		},
 	}
 
-	app := fiber.New()
-	app.Post("/", Setter)
-
 	for _, test := range tests {
 		b := bytes.NewBuffer([]byte(test.url))
 
 		req := httptest.NewRequest(http.MethodPost, test.route, b)
 
-		resp, _ := app.Test(req, 5)
+		resp, _ := s.App.Test(req, 5)
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
@@ -66,6 +81,20 @@ func TestJSONSetter(t *testing.T) {
 		json         string
 		error        string
 	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+	)
+
+	err := cfg.Init()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := models.NewServer(&store, cfg, tempApp)
+	s.App.Post("/api/shorten", s.JSONSetter)
 
 	tests := []set{
 		{
@@ -90,20 +119,21 @@ func TestJSONSetter(t *testing.T) {
 		},
 	}
 
-	app := fiber.New()
-	app.Post("/api/shorten", JSONSetter)
-
 	for _, test := range tests {
 		b := bytes.NewBuffer([]byte(test.json))
 		req := httptest.NewRequest(http.MethodPost, test.route, b)
 
-		resp, _ := app.Test(req, 5)
+		resp, _ := s.App.Test(req, 5)
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
 		if test.expectedCode != http.StatusCreated {
 			e, _ := io.ReadAll(resp.Body)
 			assert.Equalf(t, test.error, string(e), test.description)
 		}
-		resp.Body.Close()
+
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
@@ -116,10 +146,24 @@ func TestGetter(t *testing.T) {
 		url          string
 	}
 
+	var (
+		store models.Storage
+		cfg   models.Config
+	)
+
+	err := cfg.Init()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := models.NewServer(&store, cfg, tempApp)
+	s.App.Get("/:id", s.Getter)
+
 	tests := []set{
 		{
 			description:  "get success redirect 307",
-			route:        "/" + models.Store.Set("https://yandex.ru"),
+			route:        "/" + s.Storage.Set("https://yandex.ru", ""),
 			expectedCode: http.StatusTemporaryRedirect,
 			url:          "https://yandex.ru",
 		},
@@ -137,28 +181,21 @@ func TestGetter(t *testing.T) {
 		},
 	}
 
-	//// Почему не работает?-_-
-	//for _, test := range tests {
-	//	if test.expectedCode == 307 {
-	//		test.route = "/" + store.Set(test.url)
-	//		log.Println(test.route)
-	//	}
-	//}
-
-	app := fiber.New()
-	app.Get("/:id", Getter)
-
 	for _, test := range tests {
 
 		req := httptest.NewRequest("GET", test.route, nil)
 
-		resp, _ := app.Test(req, -1)
+		resp, _ := s.App.Test(req, -1)
 
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
 		assert.Equalf(t, "text/plain; charset=utf-8", resp.Header.Get("Content-type"), test.description)
 		if resp.StatusCode == http.StatusTemporaryRedirect {
 			assert.Equalf(t, test.url, resp.Header.Get("Location"), test.description)
 		}
-		resp.Body.Close()
+
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
