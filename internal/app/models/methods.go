@@ -2,8 +2,8 @@ package models
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +14,11 @@ import (
 )
 
 func (c *Config) Init() error {
+	flag.StringVar(&c.ServerAddress, "a", "8080", "Server address")
+	flag.StringVar(&c.URLBase, "b", "http://127.0.0.1", "Base url")
+	flag.StringVar(&c.FileStoragePath, "c", "./tmp/tmp.txt", "Filepath for backup")
+	flag.Parse()
+
 	err := env.Parse(c)
 	if err != nil {
 		return err
@@ -58,20 +63,6 @@ func (s *Storage) Init(cfg Config) {
 		if _, err := os.Stat(cfg.FileStoragePath); !os.IsNotExist(err) {
 			UploadData(s, cfg)
 		}
-	}
-}
-
-func (s *Storage) Backup(cfg Config) {
-	log.Println("Backuping...")
-	d, err := json.Marshal(s.Data)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	err = os.WriteFile(cfg.FileStoragePath, d, 0666)
-	if err != nil {
-		log.Println(err.Error())
 	}
 }
 

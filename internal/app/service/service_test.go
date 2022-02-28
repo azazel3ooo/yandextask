@@ -15,7 +15,6 @@ import (
 )
 
 func TestSetter(t *testing.T) {
-	t.Parallel()
 	type set struct {
 		description  string
 		route        string
@@ -28,10 +27,6 @@ func TestSetter(t *testing.T) {
 		cfg   models.Config
 	)
 
-	err := cfg.Init()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	store.Init(cfg)
 	tempApp := fiber.New()
 	s := models.NewServer(&store, cfg, tempApp)
@@ -65,7 +60,7 @@ func TestSetter(t *testing.T) {
 
 		resp, _ := s.App.Test(req, 5)
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
-		err = resp.Body.Close()
+		err := resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -73,7 +68,6 @@ func TestSetter(t *testing.T) {
 }
 
 func TestJSONSetter(t *testing.T) {
-	t.Parallel()
 	type set struct {
 		description  string
 		route        string
@@ -87,10 +81,6 @@ func TestJSONSetter(t *testing.T) {
 		cfg   models.Config
 	)
 
-	err := cfg.Init()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	store.Init(cfg)
 	tempApp := fiber.New()
 	s := models.NewServer(&store, cfg, tempApp)
@@ -130,7 +120,7 @@ func TestJSONSetter(t *testing.T) {
 			assert.Equalf(t, test.error, string(e), test.description)
 		}
 
-		err = resp.Body.Close()
+		err := resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -138,7 +128,6 @@ func TestJSONSetter(t *testing.T) {
 }
 
 func TestGetter(t *testing.T) {
-	t.Parallel()
 	type set struct {
 		description  string
 		route        string
@@ -151,10 +140,6 @@ func TestGetter(t *testing.T) {
 		cfg   models.Config
 	)
 
-	err := cfg.Init()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	store.Init(cfg)
 	tempApp := fiber.New()
 	s := models.NewServer(&store, cfg, tempApp)
@@ -193,7 +178,7 @@ func TestGetter(t *testing.T) {
 			assert.Equalf(t, test.url, resp.Header.Get("Location"), test.description)
 		}
 
-		err = resp.Body.Close()
+		err := resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}
