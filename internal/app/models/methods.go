@@ -47,6 +47,10 @@ func InitData() Data {
 	return make(map[string]string)
 }
 
+func InitUsers() Users {
+	return make(map[string][]string)
+}
+
 func UploadData(s *Storage, cfg Config) {
 	f, err := os.OpenFile(cfg.FileStoragePath, os.O_RDONLY, 0666)
 	if err != nil {
@@ -74,6 +78,7 @@ func (s *Storage) Init(cfg Config) {
 			UploadData(s, cfg)
 		}
 	}
+	s.Users = InitUsers()
 }
 
 // Get Return original URL
