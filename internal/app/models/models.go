@@ -46,8 +46,8 @@ type CustomIDSet struct {
 }
 
 type UserResponse struct {
-	Short    string `json:"ShortURL"`
-	Original string `json:"OriginalURL"`
+	Short    string `json:"short_url"`
+	Original string `json:"original_url"`
 }
 
 type Storable interface {
