@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgerrcode"
-	"github.com/lib/pq"
 	"log"
 	"strings"
 )
@@ -72,28 +70,24 @@ func (d *Database) Get(key string) (string, error) {
 func (d *Database) Set(val, pth string) (string, error) {
 	id := uuid.New()
 
-	stmt := `insert into Urls(id,url) values($1,$2) ON CONFLICT DO NOTHING`
-	res, err := d.Conn.Query(stmt, id.String(), val)
-	if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
-		stmt = `select id from Urls where url=$1`
-		rows, err := d.Conn.Query(stmt, val)
+	stmt := `select id from Urls where url=$1`
+	rows, err := d.Conn.Query(stmt, val)
+	if err != nil {
+		stmt = `insert into Urls(id,url) values($1,$2)`
+		_, err := d.Conn.Query(stmt, id.String(), val)
 		if err != nil {
 			return "", err
 		}
-		defer rows.Close()
+		return id.String(), nil
+	}
+	defer rows.Close()
 
-		var i string
-		err = rows.Scan(&i)
-		if err != nil {
-			return "", err
-		}
-		return i, errors.New("conflict")
-	} else if err != nil {
-		log.Println(err, res.Err())
+	var i string
+	err = rows.Scan(&i)
+	if err != nil {
 		return "", err
 	}
-
-	return id.String(), nil
+	return i, errors.New("conflict")
 }
 
 func (d *Database) UsersSet(id, url string) error {
@@ -160,29 +154,26 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 	var res []CustomIDSet
 
 	for _, el := range m {
-		stmt := `insert into "Urls"("id","url") values($1,$2) ON CONFLICT DO NOTHING`
-		_, err := d.Conn.Exec(stmt, el.CorrelationID, el.OriginalURL)
-		if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
-			stmt = `select "id" from "Urls" where url=$1`
-			rows, err := d.Conn.Query(stmt, el.OriginalURL)
+		stmt := `select id from Urls where url=$1`
+		rows, err := d.Conn.Query(stmt, el.OriginalURL)
+		if err != nil {
+			stmt := `insert into Urls(id,url) values($1,$2)`
+			_, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL)
 			if err != nil {
-				log.Println(err)
 				continue
 			}
-			defer rows.Close()
-
-			var i string
-			err = rows.Scan(&i)
-			if err != nil {
-				log.Println(err)
-			}
-
-			res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: i})
-			continue
-		} else if err != nil {
+			res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
 			continue
 		}
-		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
+		defer rows.Close()
+
+		var i string
+		err = rows.Scan(&i)
+		if err != nil {
+			log.Println(err)
+		}
+
+		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: i})
 	}
 	return res, nil
 }
