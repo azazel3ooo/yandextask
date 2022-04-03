@@ -26,11 +26,11 @@ func (d *Database) Init(cfg Config) {
 		log.Println(err)
 	}
 
-	_, err = db.Exec("CREATE TABLE Users (id varchar(36) PRIMARY KEY, urls varchar NOT NULL);")
+	_, err = db.Exec("CREATE TABLE Users (id varchar(37) PRIMARY KEY, urls varchar NOT NULL);")
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = db.Exec("CREATE TABLE Urls (id varchar(36) PRIMARY KEY, url varchar PRIMARY KEY);")
+	_, err = db.Exec("CREATE TABLE Urls (id varchar(37) PRIMARY KEY, url varchar NOT NULL);")
 	if err != nil {
 		log.Println(err)
 	}
