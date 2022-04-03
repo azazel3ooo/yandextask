@@ -22,7 +22,7 @@ func (c *Config) Init() error {
 		flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "Server address")
 	}
 	if c.URLBase == "" {
-		flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8081", "Base url")
+		flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8080", "Base url")
 	}
 	if c.FileStoragePath == "" {
 		flag.StringVar(&c.FileStoragePath, "f", "./tmp/tmp.txt", "Filepath for backup")
