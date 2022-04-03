@@ -14,14 +14,19 @@ import (
 func (d *Database) Init(cfg Config) {
 	//var connectionInfo string
 	name := "postgres"
-	//host := strings.Split(cfg.DatabaseDsn, ":")
+	host := strings.Split(cfg.DatabaseDsn, "?")
 	//if len(host) > 1 {
 	//	connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
 	//} else {
 	//	connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
 	//}
+	h2 := strings.Split(host[0], "/")
+	port := strings.Split(h2[0], ":")[1]
+	h := strings.Split(h2[0], ":")[0]
+	dbname := h2[1]
 
-	db, err := sql.Open(name, cfg.DatabaseDsn)
+	connInfo := fmt.Sprintf("host=%s port=%s dbname=%s %s", h, port, dbname, host[1])
+	db, err := sql.Open(name, connInfo)
 	if err != nil {
 		log.Println(err)
 	}
@@ -39,7 +44,6 @@ func (d *Database) Init(cfg Config) {
 	if err != nil {
 		log.Println(err, "from db.Init()")
 	}
-
 	d.Conn = db
 }
 
