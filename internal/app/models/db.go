@@ -53,6 +53,9 @@ func (d *Database) Get(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if rows.Err() != nil {
+		return "", rows.Err()
+	}
 	defer rows.Close()
 
 	var url string
@@ -174,8 +177,8 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 	return res, nil
 }
 
-func (d *Database) InsertMany(m []CustomIdSet) ([]CustomIdSet, error) {
-	var res []CustomIdSet
+func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
+	var res []CustomIDSet
 
 	db, err := sql.Open(d.name, d.connectionInfo)
 	if err != nil {
@@ -185,10 +188,10 @@ func (d *Database) InsertMany(m []CustomIdSet) ([]CustomIdSet, error) {
 
 	for _, el := range m {
 		stmt := `insert into "Urls"("id","url") values($1,$2) ON CONFLICT DO NOTHING`
-		_, err = db.Exec(stmt, el.CorrelationId, el.OriginalUrl)
+		_, err = db.Exec(stmt, el.CorrelationID, el.OriginalURL)
 		if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
 			stmt = `select "id" from "Urls" where url=$1`
-			rows, err := db.Query(stmt, el.OriginalUrl)
+			rows, err := db.Query(stmt, el.OriginalURL)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -201,12 +204,12 @@ func (d *Database) InsertMany(m []CustomIdSet) ([]CustomIdSet, error) {
 				log.Println(err)
 			}
 
-			res = append(res, CustomIdSet{CorrelationId: el.CorrelationId, ShortUrl: i})
+			res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: i})
 			continue
 		} else if err != nil {
 			continue
 		}
-		res = append(res, CustomIdSet{CorrelationId: el.CorrelationId, ShortUrl: el.CorrelationId})
+		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
 	}
 	return res, nil
 }

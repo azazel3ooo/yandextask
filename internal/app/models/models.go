@@ -39,15 +39,15 @@ type Response struct {
 	Result string `json:"result"`
 }
 
-type CustomIdSet struct {
-	CorrelationId string `json:"correlation_id"`
-	OriginalUrl   string `json:"original_url,omitempty"`
-	ShortUrl      string `json:"short_url,omitempty"`
+type CustomIDSet struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url,omitempty"`
+	ShortURL      string `json:"short_url,omitempty"`
 }
 
 type UserResponse struct {
-	Short    string `json:"short_url"`
-	Original string `json:"original_url"`
+	Short    string `json:"ShortURL"`
+	Original string `json:"OriginalURL"`
 }
 
 type Storable interface {
@@ -57,5 +57,5 @@ type Storable interface {
 	UsersSet(id, url string) error
 	GetUrlsForUser(ids []string) ([]UserResponse, error)
 	Ping() error
-	InsertMany(m []CustomIdSet) ([]CustomIdSet, error)
+	InsertMany(m []CustomIDSet) ([]CustomIDSet, error)
 }

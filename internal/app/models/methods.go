@@ -22,7 +22,7 @@ func (c *Config) Init() error {
 		flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "Server address")
 	}
 	if c.URLBase == "" {
-		flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8080", "Base url")
+		flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8081", "Base url")
 	}
 	if c.FileStoragePath == "" {
 		flag.StringVar(&c.FileStoragePath, "f", "./tmp/tmp.txt", "Filepath for backup")
@@ -150,11 +150,11 @@ func (s *Storage) Ping() error {
 	return errors.New("i'm not db")
 }
 
-func (s *Storage) InsertMany(m []CustomIdSet) ([]CustomIdSet, error) {
-	var res []CustomIdSet
+func (s *Storage) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
+	var res []CustomIDSet
 	for _, el := range m {
-		s.Data[el.CorrelationId] = el.OriginalUrl
-		res = append(res, CustomIdSet{CorrelationId: el.CorrelationId, ShortUrl: el.CorrelationId})
+		s.Data[el.CorrelationID] = el.OriginalURL
+		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
 	}
 
 	return res, nil

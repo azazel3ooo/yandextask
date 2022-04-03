@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -29,13 +30,11 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 	}
 
 	ck := ReadCookie(c)
+	tmp, uid := SetCookie()
 	if ck == "" {
-		tmp, err := SetCookie()
-		if err == nil {
-			c.Cookie(&tmp)
-		}
+		c.Cookie(tmp)
 	}
-
+	log.Println(ck)
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
 	if err != nil && id != "" {
@@ -47,7 +46,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusInsufficientStorage)
 	}
 
-	s.Storage.UsersSet(ck, id)
+	s.Storage.UsersSet(uid, id)
 
 	return c.Status(http.StatusCreated).SendString(result)
 }
@@ -65,11 +64,9 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	}
 
 	ck := ReadCookie(c)
+	tmp, uid := SetCookie()
 	if ck == "" {
-		tmp, err := SetCookie()
-		if err == nil {
-			c.Cookie(&tmp)
-		}
+		c.Cookie(tmp)
 	}
 
 	id, err := s.Storage.Set(req.Addr, s.Cfg.FileStoragePath)
@@ -83,7 +80,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusInsufficientStorage)
 	}
 
-	s.Storage.UsersSet(ck, id)
+	s.Storage.UsersSet(uid, id)
 
 	c.Set("Content-Type", "application/json")
 	return c.Status(http.StatusCreated).JSON(Response{
@@ -96,12 +93,12 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	if ck == "" {
 		return c.SendStatus(http.StatusNoContent)
 	}
-
+	log.Println(ck)
 	ids, err := s.Storage.UsersGet(ck)
 	if err != nil {
 		return c.SendStatus(http.StatusNoContent)
 	}
-	res, err := s.Storage.GetUrlsForUser(ids)
+	res, _ := s.Storage.GetUrlsForUser(ids)
 	for idx, el := range res {
 		res[idx].Short = s.Cfg.URLBase + "/" + el.Short
 		res[idx].Original = s.Cfg.URLBase + "/" + el.Original
@@ -120,31 +117,29 @@ func (s *Server) Ping(c *fiber.Ctx) error {
 }
 
 func (s *Server) SetMany(c *fiber.Ctx) error {
-	var req []CustomIdSet
+	var req []CustomIDSet
 	body := c.Body()
 	err := json.Unmarshal(body, &req)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid json")
 	}
 	for _, el := range req {
-		_, err = url.ParseRequestURI(el.OriginalUrl)
+		_, err = url.ParseRequestURI(el.OriginalURL)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 		}
 	}
 
 	ck := ReadCookie(c)
+	tmp, uid := SetCookie()
 	if ck == "" {
-		tmp, err := SetCookie()
-		if err == nil {
-			c.Cookie(&tmp)
-		}
+		c.Cookie(tmp)
 	}
 
 	res, _ := s.Storage.InsertMany(req)
 	for idx, el := range res {
-		res[idx].ShortUrl = s.Cfg.URLBase + "/" + el.ShortUrl
-		s.Storage.UsersSet(ck, el.CorrelationId)
+		res[idx].ShortURL = s.Cfg.URLBase + "/" + el.ShortURL
+		s.Storage.UsersSet(uid, el.CorrelationID)
 	}
 
 	return c.Status(http.StatusCreated).JSON(res)
