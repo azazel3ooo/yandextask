@@ -74,6 +74,11 @@ func (d *Database) Set(val, pth string) (string, error) {
 	stmt := `select id from Urls where url=$1`
 	rows, err := d.Conn.Query(stmt, val)
 	if err != nil {
+		return "", err
+	}
+	var i string
+	err = rows.Scan(&i)
+	if err != nil {
 		stmt = `insert into Urls(id,url) values($1,$2)`
 		_, err := d.Conn.Query(stmt, id.String(), val)
 		if err != nil {
@@ -83,11 +88,6 @@ func (d *Database) Set(val, pth string) (string, error) {
 	}
 	defer rows.Close()
 
-	var i string
-	err = rows.Scan(&i)
-	if err != nil {
-		return "", err
-	}
 	return i, errors.New("conflict")
 }
 
@@ -157,6 +157,8 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 	for _, el := range m {
 		stmt := `select id from Urls where url=$1`
 		rows, err := d.Conn.Query(stmt, el.OriginalURL)
+		var i string
+		err = rows.Scan(&i)
 		if err != nil {
 			stmt := `insert into Urls(id,url) values($1,$2)`
 			_, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL)
@@ -167,12 +169,6 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 			continue
 		}
 		defer rows.Close()
-
-		var i string
-		err = rows.Scan(&i)
-		if err != nil {
-			log.Println(err)
-		}
 
 		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: i})
 	}
