@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -118,7 +117,6 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 
 func (s *Server) Ping(c *fiber.Ctx) error {
 	err := s.Storage.Ping()
-	log.Println(err)
 	if err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}

@@ -19,7 +19,7 @@ func StartService() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Println(cfg)
+	log.Println(cfg.DatabaseDsn)
 	if cfg.DatabaseDsn == "" {
 		var s models.Storage
 		s.Init(cfg)
