@@ -50,7 +50,7 @@ func (d *Database) Ping() error {
 }
 
 func (d *Database) Get(key string) (string, error) {
-	stmt := `select "url" from "Urls" where id=$1`
+	stmt := `select url from Urls where id=$1`
 	rows, err := d.Conn.Query(stmt, key)
 	if err != nil {
 		return "", err
@@ -72,10 +72,10 @@ func (d *Database) Get(key string) (string, error) {
 func (d *Database) Set(val, pth string) (string, error) {
 	id := uuid.New()
 
-	stmt := `insert into "Urls"("id","url") values($1,$2) ON CONFLICT DO NOTHING`
-	_, err := d.Conn.Exec(stmt, id.String(), val)
+	stmt := `insert into Urls(id,url) values($1,$2) ON CONFLICT DO NOTHING`
+	res, err := d.Conn.Query(stmt, id.String(), val)
 	if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
-		stmt = `select "id" from "Urls" where url=$1`
+		stmt = `select id from Urls where url=$1`
 		rows, err := d.Conn.Query(stmt, val)
 		if err != nil {
 			return "", err
@@ -89,6 +89,7 @@ func (d *Database) Set(val, pth string) (string, error) {
 		}
 		return i, errors.New("conflict")
 	} else if err != nil {
+		log.Println(err, res.Err())
 		return "", err
 	}
 
