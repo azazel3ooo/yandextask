@@ -106,7 +106,7 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	res, _ := s.Storage.GetUrlsForUser(ids)
 	for idx, el := range res {
 		res[idx].Short = s.Cfg.URLBase + "/" + el.Short
-		res[idx].Original = s.Cfg.URLBase + "/" + el.Original
+		res[idx].Original = el.Original
 	}
 	c.Cookie(&fiber.Cookie{
 		Name:    "user",
