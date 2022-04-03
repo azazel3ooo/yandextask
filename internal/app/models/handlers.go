@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -47,6 +48,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		})
 	}
 	if id == "" {
+		log.Println(err)
 		return c.SendStatus(http.StatusInsufficientStorage)
 	}
 

@@ -25,11 +25,11 @@ func (d *Database) Init(cfg Config) {
 		log.Println(err)
 	}
 
-	_, err = db.Exec("CREATE TABLE Users (id varchar(37) PRIMARY KEY, urls varchar NOT NULL);")
+	_, err = db.Exec("CREATE TABLE Users (id varchar PRIMARY KEY, urls varchar NOT NULL);")
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = db.Exec("CREATE TABLE Urls (id varchar(37) PRIMARY KEY, url varchar unique NOT NULL);")
+	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL);")
 	if err != nil {
 		log.Println(err)
 	}
@@ -60,9 +60,11 @@ func (d *Database) Get(key string) (string, error) {
 	defer rows.Close()
 
 	var url string
-	err = rows.Scan(&url)
-	if err != nil {
-		return "", err
+	for rows.Next() {
+		err = rows.Scan(&url)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return url, nil
