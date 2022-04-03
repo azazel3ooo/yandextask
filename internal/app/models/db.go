@@ -12,16 +12,16 @@ import (
 )
 
 func (d *Database) Init(cfg Config) {
-	var connectionInfo string
+	//var connectionInfo string
 	name := "postgres"
-	host := strings.Split(cfg.DatabaseDsn, ":")
-	if len(host) > 1 {
-		connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
-	} else {
-		connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
-	}
+	//host := strings.Split(cfg.DatabaseDsn, ":")
+	//if len(host) > 1 {
+	//	connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
+	//} else {
+	//	connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
+	//}
 
-	db, err := sql.Open(name, connectionInfo)
+	db, err := sql.Open(name, cfg.DatabaseDsn)
 	if err != nil {
 		log.Println(err)
 	}
