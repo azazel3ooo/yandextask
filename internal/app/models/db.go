@@ -14,36 +14,34 @@ import (
 func (d *Database) Init(cfg Config) {
 	//var connectionInfo string
 	name := "postgres"
-	host := strings.Split(cfg.DatabaseDsn, "?")
+	//host := strings.Split(cfg.DatabaseDsn, ":")
 	//if len(host) > 1 {
 	//	connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
 	//} else {
 	//	connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
 	//}
-	h2 := strings.Split(host[0], "/")
-	port := strings.Split(h2[0], ":")[1]
-	h := strings.Split(h2[0], ":")[0]
-	dbname := h2[1]
 
-	connInfo := fmt.Sprintf("host=%s port=%s dbname=%s %s", h, port, dbname, host[1])
-	db, err := sql.Open(name, connInfo)
+	db, err := sql.Open(name, cfg.DatabaseDsn)
 	if err != nil {
 		log.Println(err)
 	}
 
-	//_, err = db.Exec("CREATE TABLE Users (id varchar(37) PRIMARY KEY, urls varchar NOT NULL);")
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//_, err = db.Exec("CREATE TABLE Urls (id varchar(37) PRIMARY KEY, url varchar NOT NULL);")
-	//if err != nil {
-	//	log.Println(err)
-	//}
+	_, err = db.Exec("CREATE TABLE Users (id varchar(37) PRIMARY KEY, urls varchar NOT NULL);")
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = db.Exec("CREATE TABLE Urls (id varchar(37) PRIMARY KEY, url varchar unique NOT NULL);")
+	if err != nil {
+		log.Println(err)
+	}
 
 	err = db.Ping()
 	if err != nil {
 		log.Println(err, "from db.Init()")
+	} else {
+		log.Println("Connected")
 	}
+
 	d.Conn = db
 }
 

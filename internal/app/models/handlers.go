@@ -116,8 +116,7 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 }
 
 func (s *Server) Ping(c *fiber.Ctx) error {
-	err := s.Storage.Ping()
-	if err != nil {
+	if err := s.Storage.Ping(); err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
 	}
 
