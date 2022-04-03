@@ -28,9 +28,9 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	ck := s.ReadCookie(c)
+	ck := ReadCookie(c)
 	if ck == "" {
-		tmp, err := s.SetCookie()
+		tmp, err := SetCookie()
 		if err == nil {
 			c.Cookie(&tmp)
 		}
@@ -64,9 +64,9 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 	}
 
-	ck := s.ReadCookie(c)
+	ck := ReadCookie(c)
 	if ck == "" {
-		tmp, err := s.SetCookie()
+		tmp, err := SetCookie()
 		if err == nil {
 			c.Cookie(&tmp)
 		}
@@ -92,7 +92,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 }
 
 func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
-	ck := s.ReadCookie(c)
+	ck := ReadCookie(c)
 	if ck == "" {
 		return c.SendStatus(http.StatusNoContent)
 	}
@@ -133,9 +133,9 @@ func (s *Server) SetMany(c *fiber.Ctx) error {
 		}
 	}
 
-	ck := s.ReadCookie(c)
+	ck := ReadCookie(c)
 	if ck == "" {
-		tmp, err := s.SetCookie()
+		tmp, err := SetCookie()
 		if err == nil {
 			c.Cookie(&tmp)
 		}

@@ -37,7 +37,8 @@ func (d *Database) Ping() error {
 	}
 	defer db.Close()
 
-	return db.Ping()
+	err = db.Ping()
+	return err
 }
 
 func (d *Database) Get(key string) (string, error) {

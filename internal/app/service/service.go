@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gorilla/securecookie"
 	"log"
 )
 
@@ -40,10 +39,6 @@ func StartService() {
 	}))
 
 	s := models.NewServer(store, cfg, app)
-
-	hashKey := []byte("top-secret")
-	blockKey := []byte("super-secret")
-	s.Cookie = securecookie.New(hashKey, blockKey)
 
 	s.App.Get("/:id", s.Getter)
 	s.App.Post("/", s.Setter)

@@ -2,14 +2,12 @@ package models
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/gorilla/securecookie"
 )
 
 type Server struct {
 	Storage Storable
 	App     *fiber.App
 	Cfg     Config
-	Cookie  *securecookie.SecureCookie
 }
 
 type Config struct {
