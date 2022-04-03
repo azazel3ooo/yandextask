@@ -27,6 +27,7 @@ func StartService() {
 		var s models.Database
 		s.Init(cfg)
 		store = &s
+		defer s.Conn.Close()
 	}
 
 	app := fiber.New()

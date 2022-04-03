@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,8 +19,7 @@ type Config struct {
 }
 
 type Database struct {
-	name           string
-	connectionInfo string
+	Conn *sql.DB
 }
 
 type Data map[string]string

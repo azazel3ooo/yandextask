@@ -12,44 +12,40 @@ import (
 )
 
 func (d *Database) Init(cfg Config) {
-	d.name = "postgres"
+	var connectionInfo string
+	name := "postgres"
 	host := strings.Split(cfg.DatabaseDsn, ":")
 	if len(host) > 1 {
-		d.connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
+		connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
 	} else {
-		d.connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
+		connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
 	}
 
-	db, err := sql.Open(d.name, d.connectionInfo)
+	db, err := sql.Open(name, connectionInfo)
 	if err != nil {
 		log.Println(err)
 	}
-	defer db.Close()
 
-	db.Exec("CREATE TABLE Users (id varchar(36) PRIMARY KEY, urls varchar NOT NULL);")
-	db.Exec("CREATE TABLE Urls (id varchar(36) PRIMARY KEY, url varchar PRIMARY KEY);")
+	_, err = db.Exec("CREATE TABLE Users (id varchar(36) PRIMARY KEY, urls varchar NOT NULL);")
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = db.Exec("CREATE TABLE Urls (id varchar(36) PRIMARY KEY, url varchar PRIMARY KEY);")
+	if err != nil {
+		log.Println(err)
+	}
+
+	d.Conn = db
 }
 
 func (d *Database) Ping() error {
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	err = db.Ping()
+	err := d.Conn.Ping()
 	return err
 }
 
 func (d *Database) Get(key string) (string, error) {
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		log.Println(err)
-	}
-	defer db.Close()
-
 	stmt := `select "url" from "Urls" where id=$1`
-	rows, err := db.Query(stmt, key)
+	rows, err := d.Conn.Query(stmt, key)
 	if err != nil {
 		return "", err
 	}
@@ -70,17 +66,11 @@ func (d *Database) Get(key string) (string, error) {
 func (d *Database) Set(val, pth string) (string, error) {
 	id := uuid.New()
 
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		log.Println(err)
-	}
-	defer db.Close()
-
 	stmt := `insert into "Urls"("id","url") values($1,$2) ON CONFLICT DO NOTHING`
-	_, err = db.Exec(stmt, id.String(), val)
+	_, err := d.Conn.Exec(stmt, id.String(), val)
 	if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
 		stmt = `select "id" from "Urls" where url=$1`
-		rows, err := db.Query(stmt, val)
+		rows, err := d.Conn.Query(stmt, val)
 		if err != nil {
 			return "", err
 		}
@@ -100,23 +90,17 @@ func (d *Database) Set(val, pth string) (string, error) {
 }
 
 func (d *Database) UsersSet(id, url string) error {
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
 	urls, err := d.UsersGet(id)
 	if err == nil {
 		urls = append(urls, url)
 		stmt := `update "Users" set "urls"=$1 where "id"=$2`
-		_, err = db.Exec(stmt, strings.Join(urls, ","), id)
+		_, err = d.Conn.Exec(stmt, strings.Join(urls, ","), id)
 		if err != nil {
 			return err
 		}
 	} else {
 		stmt := `insert into "Users"("id","urls") values($1,$2)`
-		_, err = db.Exec(stmt, id, url)
+		_, err = d.Conn.Exec(stmt, id, url)
 		if err != nil {
 			return err
 		}
@@ -125,14 +109,8 @@ func (d *Database) UsersSet(id, url string) error {
 }
 
 func (d *Database) UsersGet(id string) ([]string, error) {
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		log.Println(err)
-	}
-	defer db.Close()
-
 	stmt := `select "urls" from "Users" where id=$1`
-	row, err := db.Query(stmt, id)
+	row, err := d.Conn.Query(stmt, id)
 	if err != nil {
 		return nil, err
 	}
@@ -148,14 +126,8 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 		ids[idx] = fmt.Sprintf("'%s'", id)
 	}
 
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		log.Println(err)
-	}
-	defer db.Close()
-
 	stmt := `select * from "Urls" where id IN ($1)`
-	rows, err := db.Query(stmt, strings.Join(ids, ","))
+	rows, err := d.Conn.Query(stmt, strings.Join(ids, ","))
 	if err != nil {
 		return nil, err
 	}
@@ -180,18 +152,12 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 	var res []CustomIDSet
 
-	db, err := sql.Open(d.name, d.connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
 	for _, el := range m {
 		stmt := `insert into "Urls"("id","url") values($1,$2) ON CONFLICT DO NOTHING`
-		_, err = db.Exec(stmt, el.CorrelationID, el.OriginalURL)
+		_, err := d.Conn.Exec(stmt, el.CorrelationID, el.OriginalURL)
 		if err.(*pq.Error).Code == pgerrcode.UniqueViolation {
 			stmt = `select "id" from "Urls" where url=$1`
-			rows, err := db.Query(stmt, el.OriginalURL)
+			rows, err := d.Conn.Query(stmt, el.OriginalURL)
 			if err != nil {
 				log.Println(err)
 				continue
