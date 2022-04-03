@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 	"log"
 	"strings"
 )
