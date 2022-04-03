@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"log"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func (s *Server) Getter(c *fiber.Ctx) error {
@@ -19,6 +19,11 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
 	c.Set("Location", fullURL)
+	c.Cookie(&fiber.Cookie{
+		Name:    "user",
+		Value:   ReadCookie(c),
+		Expires: time.Now().Add(24 * 356 * time.Hour),
+	})
 	return c.SendStatus(http.StatusTemporaryRedirect)
 }
 
@@ -34,7 +39,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 	if ck == "" {
 		c.Cookie(tmp)
 	}
-	log.Println(ck)
+	//log.Println(ck)
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
 	if err != nil && id != "" {
@@ -93,7 +98,7 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	if ck == "" {
 		return c.SendStatus(http.StatusNoContent)
 	}
-	log.Println(ck)
+	//log.Println(ck)
 	ids, err := s.Storage.UsersGet(ck)
 	if err != nil {
 		return c.SendStatus(http.StatusNoContent)
@@ -103,7 +108,11 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 		res[idx].Short = s.Cfg.URLBase + "/" + el.Short
 		res[idx].Original = s.Cfg.URLBase + "/" + el.Original
 	}
-
+	c.Cookie(&fiber.Cookie{
+		Name:    "user",
+		Value:   ReadCookie(c),
+		Expires: time.Now().Add(24 * 356 * time.Hour),
+	})
 	return c.Status(http.StatusOK).JSON(res)
 }
 
