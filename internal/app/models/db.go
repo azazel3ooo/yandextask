@@ -35,12 +35,16 @@ func (d *Database) Init(cfg Config) {
 		log.Println(err)
 	}
 
+	err = db.Ping()
+	if err != nil {
+		log.Println(err, "from db.Init()")
+	}
+
 	d.Conn = db
 }
 
 func (d *Database) Ping() error {
-	err := d.Conn.Ping()
-	return err
+	return d.Conn.Ping()
 }
 
 func (d *Database) Get(key string) (string, error) {
