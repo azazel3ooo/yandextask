@@ -5,12 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/caarlos0/env/v6"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func (c *Config) Init() error {

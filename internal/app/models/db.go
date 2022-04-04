@@ -4,21 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	_ "github.com/lib/pq"
 	"log"
 	"strings"
+
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 )
 
 func (d *Database) Init(cfg Config) {
-	//var connectionInfo string
 	name := "postgres"
-	//host := strings.Split(cfg.DatabaseDsn, ":")
-	//if len(host) > 1 {
-	//	connectionInfo = fmt.Sprintf("host=%s port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], host[1], "Ne8GowT4_")
-	//} else {
-	//	connectionInfo = fmt.Sprintf("host=localhost port=%s user=postgres password=%s dbname=myDB sslmode=disable", host[0], "Ne8GowT4_")
-	//}
 
 	db, err := sql.Open(name, cfg.DatabaseDsn)
 	if err != nil {
