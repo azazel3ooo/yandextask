@@ -43,9 +43,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
 	if err != nil && id != "" {
-		return c.Status(http.StatusConflict).JSON(Response{
-			Result: result,
-		})
+		return c.Status(http.StatusConflict).SendString(result)
 	}
 	if id == "" {
 		log.Println(err)
