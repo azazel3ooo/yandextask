@@ -97,9 +97,12 @@ func (d *Database) Set(val, pth string) (string, error) {
 	defer rows.Close()
 
 	stmt = `insert into Urls(id,url) values($1,$2)`
-	_, err = d.Conn.Query(stmt, id.String(), val)
+	rows, err = d.Conn.Query(stmt, id.String(), val)
 	if err != nil {
 		return "", err
+	}
+	if rows.Err() != nil {
+		log.Println(rows.Err())
 	}
 	return id.String(), nil
 }
