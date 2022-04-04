@@ -79,18 +79,22 @@ func (d *Database) Set(val, pth string) (string, error) {
 		return "", err
 	}
 	var i string
-	err = rows.Scan(&i)
-	if err != nil {
-		stmt = `insert into Urls(id,url) values($1,$2)`
-		_, err := d.Conn.Query(stmt, id.String(), val)
+
+	for rows.Next() {
+		err = rows.Scan(&i)
 		if err != nil {
 			return "", err
 		}
-		return id.String(), nil
+		return i, errors.New("conflict")
 	}
 	defer rows.Close()
 
-	return i, errors.New("conflict")
+	stmt = `insert into Urls(id,url) values($1,$2)`
+	_, err = d.Conn.Query(stmt, id.String(), val)
+	if err != nil {
+		return "", err
+	}
+	return id.String(), nil
 }
 
 func (d *Database) UsersSet(id, url string) error {

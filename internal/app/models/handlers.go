@@ -83,6 +83,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		})
 	}
 	if id == "" {
+		log.Println(err)
 		return c.SendStatus(http.StatusInsufficientStorage)
 	}
 

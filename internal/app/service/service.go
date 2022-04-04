@@ -42,11 +42,11 @@ func StartService() {
 
 	s := models.NewServer(store, cfg, app)
 
+	s.App.Get("/ping", s.Ping)
 	s.App.Get("/:id", s.Getter)
 	s.App.Post("/", s.Setter)
 	s.App.Post("/api/shorten", s.JSONSetter)
 	s.App.Get("/api/user/urls", s.UserUrlsGet)
-	s.App.Get("/ping", s.Ping)
 	s.App.Post("/api/shorten/batch", s.SetMany)
 	log.Fatal(s.App.Listen(s.Cfg.ServerAddress))
 }
