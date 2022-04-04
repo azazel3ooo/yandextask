@@ -78,12 +78,19 @@ func (d *Database) Set(val, pth string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if rows.Err() != nil {
+		log.Println(rows.Err())
+	}
+
 	var i string
 
-	for rows.Next() {
+	if rows.Next() {
 		err = rows.Scan(&i)
 		if err != nil {
 			return "", err
+		}
+		if rows.Err() != nil {
+			log.Println(rows.Err())
 		}
 		return i, errors.New("conflict")
 	}
@@ -101,16 +108,22 @@ func (d *Database) UsersSet(id, url string) error {
 	urls, err := d.UsersGet(id)
 	if err == nil {
 		urls = append(urls, url)
-		stmt := `update "Users" set "urls"=$1 where "id"=$2`
-		_, err = d.Conn.Exec(stmt, strings.Join(urls, ","), id)
+		stmt := `update Users set urls=$1 where id=$2`
+		rows, err := d.Conn.Query(stmt, strings.Join(urls, ","), id)
 		if err != nil {
 			return err
 		}
+		if rows.Err() != nil {
+			log.Println(rows.Err())
+		}
 	} else {
-		stmt := `insert into "Users"("id","urls") values($1,$2)`
-		_, err = d.Conn.Exec(stmt, id, url)
+		stmt := `insert into Users(id,urls) values($1,$2)`
+		rows, err := d.Conn.Query(stmt, id, url)
 		if err != nil {
 			return err
+		}
+		if rows.Err() != nil {
+			log.Println(rows.Err())
 		}
 	}
 	return nil
@@ -123,6 +136,9 @@ func (d *Database) UsersGet(id string) ([]string, error) {
 		return nil, err
 	}
 	defer row.Close()
+	if row.Err() != nil {
+		log.Println(row.Err())
+	}
 
 	var s string
 	row.Scan(&s)
@@ -151,6 +167,9 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 			log.Println(err)
 			continue
 		}
+		if rows.Err() != nil {
+			log.Println(rows.Err())
+		}
 		res = append(res, u)
 	}
 
@@ -162,14 +181,21 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 
 	for _, el := range m {
 		stmt := `select id from Urls where url=$1`
-		rows, err := d.Conn.Query(stmt, el.OriginalURL)
+		rows, _ := d.Conn.Query(stmt, el.OriginalURL)
+		if rows.Err() != nil {
+			log.Println(rows.Err())
+		}
+
 		var i string
-		err = rows.Scan(&i)
+		err := rows.Scan(&i)
 		if err != nil {
 			stmt := `insert into Urls(id,url) values($1,$2)`
-			_, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL)
+			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL)
 			if err != nil {
 				continue
+			}
+			if rows.Err() != nil {
+				log.Println(rows.Err())
 			}
 			res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
 			continue
