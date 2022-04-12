@@ -24,11 +24,19 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
 	c.Set("Location", fullURL)
-	c.Cookie(&fiber.Cookie{
-		Name:    "user",
-		Value:   ReadCookie(c),
-		Expires: time.Now().Add(24 * 356 * time.Hour),
-	})
+
+	ck := ReadCookie(c)
+	tmp, _ := SetCookie()
+	if ck == "" {
+		c.Cookie(tmp)
+	} else {
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
+	}
+
 	return c.SendStatus(http.StatusTemporaryRedirect)
 }
 
@@ -45,6 +53,11 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		c.Cookie(tmp)
 	} else {
 		uid = ck
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
 	}
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
@@ -79,6 +92,11 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		c.Cookie(tmp)
 	} else {
 		uid = ck
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
 	}
 
 	id, err := s.Storage.Set(req.Addr, s.Cfg.FileStoragePath)
@@ -103,10 +121,22 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 
 func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	ck := ReadCookie(c)
+	tmp, uid := SetCookie()
+	if ck == "" {
+		c.Cookie(tmp)
+	} else {
+		uid = ck
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
+	}
+
 	if ck == "" {
 		return c.SendStatus(http.StatusNoContent)
 	}
-	ids, err := s.Storage.UsersGet(ck)
+	ids, err := s.Storage.UsersGet(uid)
 	if err != nil {
 		return c.SendStatus(http.StatusNoContent)
 	}
@@ -115,11 +145,7 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 		res[idx].Short = s.Cfg.URLBase + "/" + el.Short
 		res[idx].Original = el.Original
 	}
-	c.Cookie(&fiber.Cookie{
-		Name:    "user",
-		Value:   ReadCookie(c),
-		Expires: time.Now().Add(24 * 356 * time.Hour),
-	})
+
 	return c.Status(http.StatusOK).JSON(res)
 }
 
@@ -151,6 +177,11 @@ func (s *Server) SetMany(c *fiber.Ctx) error {
 		c.Cookie(tmp)
 	} else {
 		uid = ck
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
 	}
 
 	res, _ := s.Storage.InsertMany(req)
@@ -178,6 +209,11 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 		c.Cookie(tmp)
 	} else {
 		uid = ck
+		c.Cookie(&fiber.Cookie{
+			Name:    "user",
+			Value:   ck,
+			Expires: time.Now().Add(24 * 356 * time.Hour),
+		})
 	}
 
 	urls, err := s.Storage.UsersGet(uid)
