@@ -5,12 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/caarlos0/env/v6"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/caarlos0/env/v6"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func (c *Config) Init() error {
@@ -27,6 +28,9 @@ func (c *Config) Init() error {
 	if c.FileStoragePath == "" {
 		flag.StringVar(&c.FileStoragePath, "f", "./tmp/tmp.txt", "Filepath for backup")
 	}
+	if c.DatabaseDsn == "" {
+		flag.StringVar(&c.DatabaseDsn, "d", "", "Database address")
+	}
 
 	flag.Parse()
 
@@ -42,6 +46,10 @@ func NewServer(store Storable, cfg Config, app *fiber.App) (s Server) {
 
 func InitData() Data {
 	return make(map[string]string)
+}
+
+func InitUsers() Users {
+	return make(map[string][]string)
 }
 
 func UploadData(s *Storage, cfg Config) {
@@ -71,6 +79,7 @@ func (s *Storage) Init(cfg Config) {
 			UploadData(s, cfg)
 		}
 	}
+	s.Users = InitUsers()
 }
 
 // Get Return original URL
@@ -83,7 +92,7 @@ func (s *Storage) Get(key string) (string, error) {
 }
 
 // Set Return URL id in storage
-func (s *Storage) Set(val, pth string) string {
+func (s *Storage) Set(val, pth string) (string, error) {
 	id := uuid.New()
 	s.Data[id.String()] = val
 
@@ -91,7 +100,7 @@ func (s *Storage) Set(val, pth string) string {
 		SetToFile(id.String(), val, pth)
 	}
 
-	return id.String()
+	return id.String(), nil
 }
 
 func SetToFile(k, v, pth string) {
@@ -106,4 +115,48 @@ func SetToFile(k, v, pth string) {
 	if err != nil {
 		log.Println(err.Error())
 	}
+}
+
+func (s *Storage) UsersGet(id string) ([]string, error) {
+	urls, ok := s.Users[id]
+	if !ok {
+		return nil, errors.New("unknown user")
+	}
+
+	return urls, nil
+}
+
+func (s *Storage) UsersSet(id, url string) error {
+	urls, ok := s.Users[id]
+	if !ok {
+		s.Users[id] = []string{url}
+	} else {
+		s.Users[id] = append(urls, url)
+	}
+	return nil
+}
+
+func (s *Storage) GetUrlsForUser(ids []string) ([]UserResponse, error) {
+	var res []UserResponse
+	for _, id := range ids {
+		url, ok := s.Data[id]
+		if ok {
+			res = append(res, UserResponse{id, url})
+		}
+	}
+	return res, nil
+}
+
+func (s *Storage) Ping() error {
+	return errors.New("i'm not db")
+}
+
+func (s *Storage) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
+	var res []CustomIDSet
+	for _, el := range m {
+		s.Data[el.CorrelationID] = el.OriginalURL
+		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
+	}
+
+	return res, nil
 }

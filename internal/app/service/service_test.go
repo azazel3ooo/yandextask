@@ -145,10 +145,12 @@ func TestGetter(t *testing.T) {
 	s := models.NewServer(&store, cfg, tempApp)
 	s.App.Get("/:id", s.Getter)
 
+	id, _ := s.Storage.Set("https://yandex.ru", "")
+
 	tests := []set{
 		{
 			description:  "get success redirect 307",
-			route:        "/" + s.Storage.Set("https://yandex.ru", ""),
+			route:        "/" + id,
 			expectedCode: http.StatusTemporaryRedirect,
 			url:          "https://yandex.ru",
 		},
