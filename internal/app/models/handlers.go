@@ -17,11 +17,11 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный id")
 	}
 	fullURL, err := s.Storage.Get(id)
-	if fullURL == "url" {
-		return c.SendStatus(http.StatusGone)
-	}
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
+	}
+	if fullURL == "deleted" {
+		return c.SendStatus(http.StatusGone)
 	}
 	c.Set("Location", fullURL)
 

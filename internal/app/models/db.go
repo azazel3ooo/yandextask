@@ -63,7 +63,7 @@ func (d *Database) Get(key string) (string, error) {
 		}
 	}
 	if del == "y" {
-		return "url", errors.New("deleted")
+		return "deleted", nil
 	}
 
 	return url, nil
@@ -211,7 +211,7 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 }
 
 func (d *Database) Delete(ids []string) error {
-	stmt := `update Urls SET deleted="y" WHERE id=$1`
+	stmt := `update Urls SET deleted='y' WHERE id=$1`
 	for _, id := range ids {
 		_, err := d.Conn.Exec(stmt, id)
 		if err != nil {
