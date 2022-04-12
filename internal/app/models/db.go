@@ -108,25 +108,25 @@ func (d *Database) Set(val, pth string) (string, error) {
 
 func (d *Database) UsersSet(id, url string) error {
 	urls, err := d.UsersGet(id)
+	log.Println("get user urls ", urls)
 	if err == nil {
 		urls = append(urls, url)
 		stmt := `update Users set urls=$1 where id=$2`
-		rows, err := d.Conn.Query(stmt, strings.Join(urls, ","), id)
+		res, err := d.Conn.Exec(stmt, strings.Join(urls, ","), id)
 		if err != nil {
 			return err
 		}
-		if rows.Err() != nil {
-			log.Println(rows.Err())
-		}
+		log.Println(res.RowsAffected())
+		log.Println("nil, new user urls ", urls)
 	} else {
+		urls = append(urls, url)
 		stmt := `insert into Users(id,urls) values($1,$2)`
-		rows, err := d.Conn.Query(stmt, id, url)
+		res, err := d.Conn.Exec(stmt, id, strings.Join(urls, ","))
 		if err != nil {
 			return err
 		}
-		if rows.Err() != nil {
-			log.Println(rows.Err())
-		}
+		log.Println(res.RowsAffected())
+		log.Println("!nil, new user urls ", urls)
 	}
 	return nil
 }

@@ -72,7 +72,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 
 	err = s.Storage.UsersSet(uid, id)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 	}
 
 	return c.Status(http.StatusCreated).SendString(result)
@@ -239,8 +239,6 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 	}
 
 	if len(idsForDelete) == 0 {
-		log.Println(urls)
-		log.Println(ids)
 		return c.SendStatus(http.StatusNoContent)
 	}
 
