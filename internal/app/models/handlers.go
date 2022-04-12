@@ -59,7 +59,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 			Expires: time.Now().Add(24 * 356 * time.Hour),
 		})
 	}
-	log.Println(uid)
+
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
 	if err != nil && id != "" {
@@ -70,7 +70,10 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		return c.SendStatus(http.StatusInsufficientStorage)
 	}
 
-	s.Storage.UsersSet(uid, id)
+	err = s.Storage.UsersSet(uid, id)
+	if err != nil {
+		log.Println(err.Error())
+	}
 
 	return c.Status(http.StatusCreated).SendString(result)
 }
@@ -216,7 +219,7 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 			Expires: time.Now().Add(24 * 356 * time.Hour),
 		})
 	}
-	log.Println(uid)
+
 	urls, err := s.Storage.UsersGet(uid)
 	if err != nil {
 		log.Println(err)

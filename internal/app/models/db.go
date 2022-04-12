@@ -132,7 +132,7 @@ func (d *Database) UsersSet(id, url string) error {
 }
 
 func (d *Database) UsersGet(id string) ([]string, error) {
-	stmt := `select "urls" from Users where id=$1`
+	stmt := `select urls from Users where id=$1`
 	row, err := d.Conn.Query(stmt, id)
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 		ids[idx] = fmt.Sprintf("'%s'", id)
 	}
 
-	stmt := `select * from "Urls" where id IN ($1)`
+	stmt := `select * from Urls where id IN ($1)`
 	rows, err := d.Conn.Query(stmt, strings.Join(ids, ","))
 	if err != nil {
 		return nil, err
