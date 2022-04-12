@@ -43,6 +43,8 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 	tmp, uid := SetCookie()
 	if ck == "" {
 		c.Cookie(tmp)
+	} else {
+		uid = ck
 	}
 	id, err := s.Storage.Set(u.String(), s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
@@ -75,6 +77,8 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	tmp, uid := SetCookie()
 	if ck == "" {
 		c.Cookie(tmp)
+	} else {
+		uid = ck
 	}
 
 	id, err := s.Storage.Set(req.Addr, s.Cfg.FileStoragePath)
@@ -145,6 +149,8 @@ func (s *Server) SetMany(c *fiber.Ctx) error {
 	tmp, uid := SetCookie()
 	if ck == "" {
 		c.Cookie(tmp)
+	} else {
+		uid = ck
 	}
 
 	res, _ := s.Storage.InsertMany(req)
@@ -170,6 +176,8 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 	tmp, uid := SetCookie()
 	if ck == "" {
 		c.Cookie(tmp)
+	} else {
+		uid = ck
 	}
 
 	urls, err := s.Storage.UsersGet(uid)
