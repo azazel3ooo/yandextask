@@ -108,8 +108,11 @@ func (d *Database) Set(val, pth string) (string, error) {
 
 func (d *Database) UsersSet(id, url string) error {
 	urls, err := d.UsersGet(id)
+	if err != nil {
+		return err
+	}
 	log.Println("get user urls ", urls)
-	if err == nil {
+	if len(urls) != 0 {
 		urls = append(urls, url)
 		stmt := `update Users set urls=$1 where id=$2`
 		res, err := d.Conn.Exec(stmt, strings.Join(urls, ","), id)
