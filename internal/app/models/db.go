@@ -112,25 +112,16 @@ func (d *Database) UsersSet(id, url string) error {
 		return err
 	}
 	log.Println("get user urls ", urls)
-	if urls != nil {
-		urls = append(urls, url)
-		stmt := `update Users set urls=$1 where id=$2`
-		res, err := d.Conn.Exec(stmt, strings.Join(urls, ","), id)
-		if err != nil {
-			return err
-		}
-		log.Println(res.RowsAffected())
-		log.Println("nil, new user urls ", urls)
-	} else {
-		urls = append(urls, url)
-		stmt := `insert into Users(id,urls) values($1,$2)`
-		res, err := d.Conn.Exec(stmt, id, strings.Join(urls, ","))
-		if err != nil {
-			return err
-		}
-		log.Println(res.RowsAffected())
-		log.Println("!nil, new user urls ", urls)
+
+	urls = append(urls, url)
+
+	stmt := `insert into Users(id, urls) values($1,$2) on conflict (id) do update set urls=$2`
+	res, err := d.Conn.Exec(stmt, id, strings.Join(urls, ","))
+	if err != nil {
+		return err
 	}
+	log.Println(res.RowsAffected())
+	log.Println("new user urls", urls)
 	return nil
 }
 
