@@ -23,7 +23,7 @@ func (d *Database) Init(cfg Config) {
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL);")
+	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL, deleted varchar(1));")
 	if err != nil {
 		log.Println(err)
 	}
@@ -43,7 +43,7 @@ func (d *Database) Ping() error {
 }
 
 func (d *Database) Get(key string) (string, error) {
-	stmt := `select url from Urls where id=$1`
+	stmt := `select url, deleted from Urls where id=$1`
 	rows, err := d.Conn.Query(stmt, key)
 	if err != nil {
 		return "", err
@@ -53,12 +53,17 @@ func (d *Database) Get(key string) (string, error) {
 	}
 	defer rows.Close()
 
-	var url string
+	var (
+		url, del string
+	)
 	for rows.Next() {
-		err = rows.Scan(&url)
+		err = rows.Scan(&url, &del)
 		if err != nil {
 			return "", err
 		}
+	}
+	if del == "y" {
+		return "url", errors.New("deleted")
 	}
 
 	return url, nil
@@ -157,9 +162,10 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 	var (
 		u   UserResponse
 		res []UserResponse
+		del string
 	)
 	for rows.Next() {
-		err = rows.Scan(&u.Short, &u.Original)
+		err = rows.Scan(&u.Short, &u.Original, &del)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -167,7 +173,10 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 		if rows.Err() != nil {
 			log.Println(rows.Err())
 		}
-		res = append(res, u)
+
+		if del != "y" {
+			res = append(res, u)
+		}
 	}
 
 	return res, nil
@@ -202,4 +211,20 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 		res = append(res, CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: i})
 	}
 	return res, nil
+}
+
+func (d *Database) Delete(ids []string) error {
+	stmt := `update Urls SET deleted="y" WHERE id=$1`
+	for _, id := range ids {
+		rows, err := d.Conn.Query(stmt, id)
+		if err != nil {
+			continue
+		}
+		if rows.Err() != nil {
+			log.Println(rows.Err())
+		}
+		rows.Close()
+	}
+
+	return nil
 }

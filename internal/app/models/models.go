@@ -7,9 +7,10 @@ import (
 )
 
 type Server struct {
-	Storage Storable
-	App     *fiber.App
-	Cfg     Config
+	Storage       Storable
+	App           *fiber.App
+	Cfg           Config
+	ChanForDelete chan []string
 }
 
 type Config struct {
@@ -59,4 +60,5 @@ type Storable interface {
 	GetUrlsForUser(ids []string) ([]UserResponse, error)
 	Ping() error
 	InsertMany(m []CustomIDSet) ([]CustomIDSet, error)
+	Delete(ids []string) error
 }

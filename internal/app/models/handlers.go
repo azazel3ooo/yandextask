@@ -17,6 +17,9 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный id")
 	}
 	fullURL, err := s.Storage.Get(id)
+	if fullURL == "url" {
+		return c.SendStatus(http.StatusGone)
+	}
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
@@ -151,4 +154,47 @@ func (s *Server) SetMany(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(res)
+}
+
+func (s *Server) AsyncDelete(c *fiber.Ctx) error {
+	var (
+		ids          []string
+		idsForDelete []string
+	)
+	err := c.BodyParser(&ids)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).SendString("invalid body")
+	}
+
+	ck := ReadCookie(c)
+	tmp, uid := SetCookie()
+	if ck == "" {
+		c.Cookie(tmp)
+	}
+
+	urls, err := s.Storage.UsersGet(uid)
+	if err != nil {
+		log.Println(err)
+		return c.SendStatus(http.StatusInternalServerError)
+	}
+
+	urlsMap := make(map[string]struct{})
+	for _, id := range urls {
+		urlsMap[id] = struct{}{}
+	}
+
+	for _, id := range ids {
+		_, ok := urlsMap[id]
+		if ok {
+			idsForDelete = append(idsForDelete, id)
+		}
+	}
+
+	if len(idsForDelete) == 0 {
+		return c.SendStatus(http.StatusNoContent)
+	}
+
+	s.ChanForDelete <- idsForDelete
+
+	return c.SendStatus(http.StatusAccepted)
 }

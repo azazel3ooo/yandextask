@@ -2,6 +2,7 @@ package service
 
 import (
 	"log"
+	"sync"
 
 	"github.com/azazel3ooo/yandextask/internal/app/models"
 	"github.com/gofiber/fiber/v2"
@@ -41,7 +42,11 @@ func StartService() {
 		Format: "[${time}] ${status} - ${latency} ${method} ${path} ${resBody}\n",
 	}))
 
-	s := models.NewServer(store, cfg, app)
+	chanForDelete := make(chan []string, 10)
+	s := models.NewServer(store, cfg, app, chanForDelete)
+	wt := sync.WaitGroup{}
+	wt.Add(1)
+	go models.FanIn(chanForDelete, &wt, s.Storage)
 
 	s.App.Get("/ping", s.Ping)
 	s.App.Get("/:id", s.Getter)
@@ -49,5 +54,7 @@ func StartService() {
 	s.App.Post("/api/shorten", s.JSONSetter)
 	s.App.Get("/api/user/urls", s.UserUrlsGet)
 	s.App.Post("/api/shorten/batch", s.SetMany)
-	log.Fatal(s.App.Listen(s.Cfg.ServerAddress))
+	s.App.Delete("/api/user/urls", s.AsyncDelete)
+	log.Println(s.App.Listen(s.Cfg.ServerAddress))
+	wt.Wait()
 }
