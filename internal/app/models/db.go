@@ -111,17 +111,14 @@ func (d *Database) UsersSet(id, url string) error {
 	if err != nil {
 		return err
 	}
-	log.Println("get user urls ", urls)
 
 	urls = append(urls, url)
 
 	stmt := `insert into Users(id, urls) values($1,$2) on conflict (id) do update set urls=$2`
-	res, err := d.Conn.Exec(stmt, id, strings.Join(urls, ","))
+	_, err = d.Conn.Exec(stmt, id, strings.Join(urls, ","))
 	if err != nil {
 		return err
 	}
-	log.Println(res.RowsAffected())
-	log.Println("new user urls", urls)
 	return nil
 }
 
@@ -216,14 +213,10 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 func (d *Database) Delete(ids []string) error {
 	stmt := `update Urls SET deleted="y" WHERE id=$1`
 	for _, id := range ids {
-		rows, err := d.Conn.Query(stmt, id)
+		_, err := d.Conn.Exec(stmt, id)
 		if err != nil {
-			continue
+			log.Println(err)
 		}
-		if rows.Err() != nil {
-			log.Println(rows.Err())
-		}
-		rows.Close()
 	}
 
 	return nil

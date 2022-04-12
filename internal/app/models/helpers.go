@@ -30,6 +30,7 @@ func FanIn(c chan []string, generalWt *sync.WaitGroup, storage Storable) {
 	defer close(goroutines)
 
 	for ids := range c {
+		log.Println("FanIn get", ids)
 		wt.Add(1)
 		goroutines <- struct{}{}
 
