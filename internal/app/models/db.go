@@ -146,6 +146,7 @@ func (d *Database) UsersGet(id string) ([]string, error) {
 	for row.Next() {
 		err = row.Scan(&s)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 	}

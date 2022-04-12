@@ -239,6 +239,8 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 	}
 
 	if len(idsForDelete) == 0 {
+		log.Println(urls)
+		log.Println(ids)
 		return c.SendStatus(http.StatusNoContent)
 	}
 
