@@ -23,7 +23,7 @@ func (d *Database) Init(cfg Config) {
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL, deleted varchar(1));")
+	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL, deleted varchar(1) NOT NULL );")
 	if err != nil {
 		log.Println(err)
 	}
@@ -143,7 +143,12 @@ func (d *Database) UsersGet(id string) ([]string, error) {
 	}
 
 	var s string
-	row.Scan(&s)
+	for row.Next() {
+		err = row.Scan(&s)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return strings.Split(s, ","), nil
 }
 
@@ -195,8 +200,8 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 		var i string
 		err := rows.Scan(&i)
 		if err != nil {
-			stmt := `insert into Urls(id,url) values($1,$2)`
-			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL)
+			stmt := `insert into Urls(id,url,deleted) values($1,$2,$3)`
+			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL, "n")
 			if err != nil {
 				continue
 			}

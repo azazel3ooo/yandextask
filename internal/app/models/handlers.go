@@ -183,7 +183,7 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 	urls, err := s.Storage.UsersGet(uid)
 	if err != nil {
 		log.Println(err)
-		return c.SendStatus(http.StatusInternalServerError)
+		return c.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
 
 	urlsMap := make(map[string]struct{})
