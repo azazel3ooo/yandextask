@@ -41,6 +41,12 @@ func TestSetter(t *testing.T) {
 			url:          "https://music.yandex.ru/home",
 		},
 		{
+			description:  "get HTTP status 201",
+			route:        "/",
+			expectedCode: http.StatusCreated,
+			url:          "https://music.yandex.ru/home",
+		},
+		{
 			description:  "get HTTP status 400 with invalid url",
 			route:        "/",
 			expectedCode: http.StatusBadRequest,
@@ -59,9 +65,13 @@ func TestSetter(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, test.route, b)
 
-		resp, _ := s.App.Test(req, 5)
+		resp, err := s.App.Test(req, -1)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
-		err := resp.Body.Close()
+		err = resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}
