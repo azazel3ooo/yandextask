@@ -23,7 +23,7 @@ func (d *Database) Init(cfg Config) {
 	if err != nil {
 		log.Println(err)
 	}
-	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL, deleted varchar(1) NOT NULL );")
+	_, err = db.Exec("CREATE TABLE Urls (id varchar PRIMARY KEY, url varchar unique NOT NULL, deleted boolean NOT NULL );")
 	if err != nil {
 		log.Println(err)
 	}
@@ -54,7 +54,8 @@ func (d *Database) Get(key string) (string, error) {
 	defer rows.Close()
 
 	var (
-		url, del string
+		url string
+		del bool
 	)
 	for rows.Next() {
 		err = rows.Scan(&url, &del)
@@ -62,7 +63,7 @@ func (d *Database) Get(key string) (string, error) {
 			return "", err
 		}
 	}
-	if del == "y" {
+	if del {
 		return "deleted", nil
 	}
 
@@ -96,7 +97,7 @@ func (d *Database) Set(val, pth string) (string, error) {
 	defer rows.Close()
 
 	stmt = `insert into Urls(id,url,deleted) values($1,$2,$3)`
-	rows, err = d.Conn.Query(stmt, id.String(), val, "n")
+	rows, err = d.Conn.Query(stmt, id.String(), val, false)
 	if err != nil {
 		return "", err
 	}
@@ -159,7 +160,7 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 	var (
 		u   UserResponse
 		res []UserResponse
-		del string
+		del bool
 	)
 	for rows.Next() {
 		err = rows.Scan(&u.Short, &u.Original, &del)
@@ -171,7 +172,7 @@ func (d *Database) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 			log.Println(rows.Err())
 		}
 
-		if del != "y" {
+		if !del {
 			res = append(res, u)
 		}
 	}
@@ -193,7 +194,7 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 		err := rows.Scan(&i)
 		if err != nil {
 			stmt := `insert into Urls(id,url,deleted) values($1,$2,$3)`
-			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL, "n")
+			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL, false)
 			if err != nil {
 				continue
 			}
@@ -211,7 +212,7 @@ func (d *Database) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 }
 
 func (d *Database) Delete(ids []string) error {
-	stmt := `update Urls SET deleted='y' WHERE id=$1`
+	stmt := `update Urls SET deleted=false WHERE id=$1`
 	for _, id := range ids {
 		_, err := d.Conn.Exec(stmt, id)
 		if err != nil {
