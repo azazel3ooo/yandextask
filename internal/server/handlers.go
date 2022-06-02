@@ -1,14 +1,14 @@
-package models
+package server
 
 import (
 	"encoding/json"
+	"github.com/azazel3ooo/yandextask/internal/models"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 func (s *Server) Getter(c *fiber.Ctx) error {
@@ -80,7 +80,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 
 func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	body := c.Body()
-	var req Request
+	var req models.Request
 	err := json.Unmarshal(body, &req)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid json")
@@ -106,7 +106,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	id, err := s.Storage.Set(req.Addr, s.Cfg.FileStoragePath)
 	result := s.Cfg.URLBase + "/" + id
 	if err != nil && id != "" {
-		return c.Status(http.StatusConflict).JSON(Response{
+		return c.Status(http.StatusConflict).JSON(models.Response{
 			Result: result,
 		})
 	}
@@ -118,7 +118,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	s.Storage.UsersSet(uid, id)
 
 	c.Set("Content-Type", "application/json")
-	return c.Status(http.StatusCreated).JSON(Response{
+	return c.Status(http.StatusCreated).JSON(models.Response{
 		Result: result,
 	})
 }
@@ -162,7 +162,7 @@ func (s *Server) Ping(c *fiber.Ctx) error {
 }
 
 func (s *Server) SetMany(c *fiber.Ctx) error {
-	var req []CustomIDSet
+	var req []models.CustomIDSet
 	body := c.Body()
 	err := json.Unmarshal(body, &req)
 	if err != nil {

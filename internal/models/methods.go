@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -35,14 +34,6 @@ func (c *Config) Init() error {
 	flag.Parse()
 
 	return nil
-}
-
-func NewServer(store Storable, cfg Config, app *fiber.App, c chan []string) (s Server) {
-	s.Storage = store
-	s.Cfg = cfg
-	s.App = app
-	s.ChanForDelete = c
-	return s
 }
 
 func InitData() Data {
