@@ -2,7 +2,8 @@ package service
 
 import (
 	"bytes"
-	"github.com/azazel3ooo/yandextask/internal/app/models"
+	"github.com/azazel3ooo/yandextask/internal/models"
+	"github.com/azazel3ooo/yandextask/internal/server"
 	"github.com/google/uuid"
 	"io"
 	"log"
@@ -25,14 +26,21 @@ func TestSetter(t *testing.T) {
 	var (
 		store models.Storage
 		cfg   models.Config
+		c     chan []string
 	)
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := models.NewServer(&store, cfg, tempApp)
+	s := server.NewServer(&store, cfg, tempApp, c)
 	s.App.Post("/", s.Setter)
 
 	tests := []set{
+		{
+			description:  "get HTTP status 201",
+			route:        "/",
+			expectedCode: http.StatusCreated,
+			url:          "https://music.yandex.ru/home",
+		},
 		{
 			description:  "get HTTP status 201",
 			route:        "/",
@@ -58,9 +66,13 @@ func TestSetter(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, test.route, b)
 
-		resp, _ := s.App.Test(req, 5)
+		resp, err := s.App.Test(req, -1)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
-		err := resp.Body.Close()
+		err = resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -79,11 +91,12 @@ func TestJSONSetter(t *testing.T) {
 	var (
 		store models.Storage
 		cfg   models.Config
+		c     chan []string
 	)
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := models.NewServer(&store, cfg, tempApp)
+	s := server.NewServer(&store, cfg, tempApp, c)
 	s.App.Post("/api/shorten", s.JSONSetter)
 
 	tests := []set{
@@ -138,11 +151,12 @@ func TestGetter(t *testing.T) {
 	var (
 		store models.Storage
 		cfg   models.Config
+		c     chan []string
 	)
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := models.NewServer(&store, cfg, tempApp)
+	s := server.NewServer(&store, cfg, tempApp, c)
 	s.App.Get("/:id", s.Getter)
 
 	id, _ := s.Storage.Set("https://yandex.ru", "")

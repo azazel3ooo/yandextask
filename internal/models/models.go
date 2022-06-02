@@ -1,26 +1,10 @@
 package models
 
-import (
-	"database/sql"
-
-	"github.com/gofiber/fiber/v2"
-)
-
-type Server struct {
-	Storage Storable
-	App     *fiber.App
-	Cfg     Config
-}
-
 type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS"`
 	URLBase         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn     string `env:"DATABASE_DSN"`
-}
-
-type Database struct {
-	Conn *sql.DB
 }
 
 type Data map[string]string
@@ -52,11 +36,20 @@ type UserResponse struct {
 }
 
 type Storable interface {
-	Get(key string) (string, error)
-	Set(val, pth string) (string, error)
+	userStorable
+	urlsStorable
+}
+
+type userStorable interface {
 	UsersGet(id string) ([]string, error)
 	UsersSet(id, url string) error
 	GetUrlsForUser(ids []string) ([]UserResponse, error)
+}
+
+type urlsStorable interface {
+	Get(key string) (string, error)
+	Set(val, pth string) (string, error)
 	Ping() error
 	InsertMany(m []CustomIDSet) ([]CustomIDSet, error)
+	Delete(ids []string) error
 }
