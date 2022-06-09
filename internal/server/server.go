@@ -1,3 +1,4 @@
+// Package server - содержит описание сруктуры сервера и хендлеров
 package server
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// Server хранит структуры необходимые для работы сервиса
 type Server struct {
 	Storage       models.Storable
 	App           *fiber.App
@@ -12,6 +14,7 @@ type Server struct {
 	ChanForDelete chan []string
 }
 
+// NewServer возвращает Server с заданыыми параметрами
 func NewServer(store models.Storable, cfg models.Config, app *fiber.App, c chan []string) (s Server) {
 	s.Storage = store
 	s.Cfg = cfg

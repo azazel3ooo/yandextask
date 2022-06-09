@@ -2,16 +2,16 @@ package service
 
 import (
 	"bytes"
-	"github.com/azazel3ooo/yandextask/internal/models"
-	"github.com/azazel3ooo/yandextask/internal/server"
-	"github.com/google/uuid"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/azazel3ooo/yandextask/internal/models"
+	"github.com/azazel3ooo/yandextask/internal/server"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 

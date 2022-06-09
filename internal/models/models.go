@@ -1,5 +1,7 @@
+// Package models - описывает основные структуры и их методы
 package models
 
+// Config структура конфигурации сервиса
 type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS"`
 	URLBase         string `env:"BASE_URL"`
@@ -35,17 +37,20 @@ type UserResponse struct {
 	Original string `json:"original_url"`
 }
 
+// Storable интерфейс, которому должно соответствовать хранилище сервиса
 type Storable interface {
 	userStorable
 	urlsStorable
 }
 
+// userStorable содержит методы необхожимые для работы с таблицами пользователя
 type userStorable interface {
 	UsersGet(id string) ([]string, error)
 	UsersSet(id, url string) error
 	GetUrlsForUser(ids []string) ([]UserResponse, error)
 }
 
+// urlsStorable содержит методы необхожимые для работы с таблицами урлов
 type urlsStorable interface {
 	Get(key string) (string, error)
 	Set(val, pth string) (string, error)

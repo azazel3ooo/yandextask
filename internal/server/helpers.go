@@ -1,15 +1,17 @@
 package server
 
 import (
-	"github.com/azazel3ooo/yandextask/internal/models"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/azazel3ooo/yandextask/internal/models"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
-func SetCookie() (*fiber.Cookie, string) {
+// setCookie создает новую сессию
+func setCookie() (*fiber.Cookie, string) {
 	id := uuid.New().String() // crypto..
 	ck := new(fiber.Cookie)
 	ck.Name = "user"
@@ -18,11 +20,13 @@ func SetCookie() (*fiber.Cookie, string) {
 	return ck, id
 }
 
-func ReadCookie(c *fiber.Ctx) string {
+// readCookie принимает на вход сессию и возвращает id пользователя
+func readCookie(c *fiber.Ctx) string {
 	// crypto
 	return c.Cookies("user")
 }
 
+// FanIn вотчер, который ожидает массив id записей и вызывает асинхронное удаление
 func FanIn(c chan []string, generalWt *sync.WaitGroup, storage models.Storable) {
 	var wt sync.WaitGroup
 	maxWorkers := 4
