@@ -1,7 +1,6 @@
 package server
 
 import (
-	_ "encoding/json"
 	"log"
 	"net/http"
 	"net/url"
