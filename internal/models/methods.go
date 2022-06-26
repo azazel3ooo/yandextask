@@ -36,15 +36,15 @@ func (c *Config) Init() error {
 	return nil
 }
 
-func InitData() Data {
+func initData() Data {
 	return make(map[string]string)
 }
 
-func InitUsers() Users {
+func initUsers() Users {
 	return make(map[string][]string)
 }
 
-func UploadData(s *Storage, cfg Config) {
+func uploadData(s *Storage, cfg Config) {
 	f, err := os.OpenFile(cfg.FileStoragePath, os.O_RDONLY, 0666)
 	if err != nil {
 		log.Println(err.Error())
@@ -65,13 +65,13 @@ func UploadData(s *Storage, cfg Config) {
 }
 
 func (s *Storage) Init(cfg Config) {
-	s.Data = InitData()
+	s.Data = initData()
 	if cfg.FileStoragePath != "" {
 		if _, err := os.Stat(cfg.FileStoragePath); !os.IsNotExist(err) {
-			UploadData(s, cfg)
+			uploadData(s, cfg)
 		}
 	}
-	s.Users = InitUsers()
+	s.Users = initUsers()
 }
 
 // Get Return original URL
@@ -89,13 +89,13 @@ func (s *Storage) Set(val, pth string) (string, error) {
 	s.Data[id.String()] = val
 
 	if pth != "" {
-		SetToFile(id.String(), val, pth)
+		setToFile(id.String(), val, pth)
 	}
 
 	return id.String(), nil
 }
 
-func SetToFile(k, v, pth string) {
+func setToFile(k, v, pth string) {
 	d := []byte(fmt.Sprintf("%s;%s\n", k, v))
 	f, err := os.OpenFile(pth, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {

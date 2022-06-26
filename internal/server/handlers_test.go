@@ -1,17 +1,16 @@
-package service
+package server
 
 import (
 	"bytes"
-	"github.com/azazel3ooo/yandextask/internal/models"
-	"github.com/azazel3ooo/yandextask/internal/server"
-	"github.com/google/uuid"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/azazel3ooo/yandextask/internal/models"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +30,7 @@ func TestSetter(t *testing.T) {
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := server.NewServer(&store, cfg, tempApp, c)
+	s := NewServer(&store, cfg, tempApp, c)
 	s.App.Post("/", s.Setter)
 
 	tests := []set{
@@ -96,7 +95,7 @@ func TestJSONSetter(t *testing.T) {
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := server.NewServer(&store, cfg, tempApp, c)
+	s := NewServer(&store, cfg, tempApp, c)
 	s.App.Post("/api/shorten", s.JSONSetter)
 
 	tests := []set{
@@ -156,7 +155,7 @@ func TestGetter(t *testing.T) {
 
 	store.Init(cfg)
 	tempApp := fiber.New()
-	s := server.NewServer(&store, cfg, tempApp, c)
+	s := NewServer(&store, cfg, tempApp, c)
 	s.App.Get("/:id", s.Getter)
 
 	id, _ := s.Storage.Set("https://yandex.ru", "")

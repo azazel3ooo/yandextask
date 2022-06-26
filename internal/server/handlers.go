@@ -1,14 +1,15 @@
 package server
 
 import (
-	"encoding/json"
-	"github.com/azazel3ooo/yandextask/internal/models"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/azazel3ooo/yandextask/internal/models"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/ugorji/go/codec"
 )
 
 func (s *Server) Getter(c *fiber.Ctx) error {
@@ -25,8 +26,8 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 	}
 	c.Set("Location", fullURL)
 
-	ck := ReadCookie(c)
-	tmp, _ := SetCookie()
+	ck := readCookie(c)
+	tmp, _ := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {
@@ -47,8 +48,8 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("Невалидный URL")
 	}
 
-	ck := ReadCookie(c)
-	tmp, uid := SetCookie()
+	ck := readCookie(c)
+	tmp, uid := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {
@@ -79,19 +80,21 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 }
 
 func (s *Server) JSONSetter(c *fiber.Ctx) error {
-	body := c.Body()
 	var req models.Request
-	err := json.Unmarshal(body, &req)
-	if err != nil {
+	body := c.Body()
+	handle := new(codec.JsonHandle)
+	decoder := codec.NewDecoderBytes(body, handle)
+	if err := decoder.Decode(&req); err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid json")
 	}
-	_, err = url.ParseRequestURI(req.Addr)
+
+	_, err := url.ParseRequestURI(req.Addr)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 	}
 
-	ck := ReadCookie(c)
-	tmp, uid := SetCookie()
+	ck := readCookie(c)
+	tmp, uid := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {
@@ -124,8 +127,8 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 }
 
 func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
-	ck := ReadCookie(c)
-	tmp, uid := SetCookie()
+	ck := readCookie(c)
+	tmp, uid := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {
@@ -164,19 +167,21 @@ func (s *Server) Ping(c *fiber.Ctx) error {
 func (s *Server) SetMany(c *fiber.Ctx) error {
 	var req []models.CustomIDSet
 	body := c.Body()
-	err := json.Unmarshal(body, &req)
-	if err != nil {
+	handle := new(codec.JsonHandle)
+	decoder := codec.NewDecoderBytes(body, handle)
+	if err := decoder.Decode(&req); err != nil {
 		return c.Status(http.StatusBadRequest).SendString("Invalid json")
 	}
+
 	for _, el := range req {
-		_, err = url.ParseRequestURI(el.OriginalURL)
+		_, err := url.ParseRequestURI(el.OriginalURL)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).SendString("Invalid URL")
 		}
 	}
 
-	ck := ReadCookie(c)
-	tmp, uid := SetCookie()
+	ck := readCookie(c)
+	tmp, uid := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {
@@ -207,8 +212,8 @@ func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).SendString("invalid body")
 	}
 
-	ck := ReadCookie(c)
-	tmp, uid := SetCookie()
+	ck := readCookie(c)
+	tmp, uid := setCookie()
 	if ck == "" {
 		c.Cookie(tmp)
 	} else {

@@ -2,9 +2,10 @@ package db
 
 import (
 	"fmt"
-	"github.com/azazel3ooo/yandextask/internal/models"
 	"log"
 	"strings"
+
+	"github.com/azazel3ooo/yandextask/internal/models"
 )
 
 func (d *Database) UsersSet(id, url string) error {

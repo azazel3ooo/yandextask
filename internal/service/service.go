@@ -1,18 +1,22 @@
+// Package service - запускат сервис
 package service
 
 import (
+	"log"
+	_ "net/http/pprof"
+	"sync"
+
 	"github.com/azazel3ooo/yandextask/internal/db"
 	"github.com/azazel3ooo/yandextask/internal/models"
 	"github.com/azazel3ooo/yandextask/internal/server"
-	"log"
-	"sync"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
+// StartService производит инициализацию основных струтур с помощью их методов и запускает сервис
 func StartService() {
 	var (
 		cfg   models.Config
@@ -43,6 +47,7 @@ func StartService() {
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${latency} ${method} ${path} ${resBody}\n",
 	}))
+	app.Use(pprof.New())
 
 	chanForDelete := make(chan []string, 10)
 	s := server.NewServer(store, cfg, app, chanForDelete)
