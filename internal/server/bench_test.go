@@ -37,12 +37,12 @@ func BenchmarkMarshal(b *testing.B) {
 	b.ResetTimer()
 	b.Run("std", func(b *testing.B) {
 		for i := 0; i < 10; i++ {
-			target, err := json.Marshal(obj)
+			t, err := json.Marshal(obj)
 			if err != nil {
 				log.Println(err)
 			}
 
-			_ = target
+			_ = t
 		}
 	})
 	b.Run("codec", func(b *testing.B) {

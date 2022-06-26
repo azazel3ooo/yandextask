@@ -199,3 +199,118 @@ func TestGetter(t *testing.T) {
 		}
 	}
 }
+
+func TestServer_Ping(t *testing.T) {
+	type set struct {
+		description  string
+		route        string
+		expectedCode int
+	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+		c     chan []string
+	)
+
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := NewServer(&store, cfg, tempApp, c)
+	s.App.Get("/ping", s.Ping)
+
+	tests := []set{
+		{
+			description:  "ping",
+			route:        "/ping",
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description:  "bad ping",
+			route:        "/pong",
+			expectedCode: http.StatusNotFound,
+		},
+	}
+
+	for _, test := range tests {
+		req := httptest.NewRequest(http.MethodGet, test.route, nil)
+
+		resp, err := s.App.Test(req, -1)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+}
+
+func TestServer_SetMany(t *testing.T) {
+	type set struct {
+		description    string
+		route          string
+		expectedCode   int
+		expectedResult string
+		json           string
+		error          string
+	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+		c     chan []string
+	)
+
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := NewServer(&store, cfg, tempApp, c)
+	s.App.Post("/api/shorten/batch", s.SetMany)
+
+	tests := []set{
+		{
+			description:  "get HTTP status 201",
+			route:        "/api/shorten/batch",
+			expectedCode: http.StatusCreated,
+			json: "[{\"correlation_id\": \"123\", \"original_url\": \"https://translate.yandex.ru\"}, " +
+				"{\"correlation_id\": \"qwerty\", \"original_url\": \"https://translate.yandex.ru/?lang=ru-en&text=адрес\"}]",
+			expectedResult: "[{\"correlation_id\":\"123\",\"short_url\":\"" + cfg.URLBase + "/123\"}," +
+				"{\"correlation_id\":\"qwerty\",\"short_url\":\"" + cfg.URLBase + "/qwerty\"}]",
+		},
+		{
+			description:  "get HTTP status 400 with invalid url",
+			route:        "/api/shorten/batch",
+			expectedCode: http.StatusBadRequest,
+			json:         "[{\"correlation_id\": \"123\", \"original_url\": \"bad url\"}]",
+			error:        "Invalid URL",
+		},
+		{
+			description:  "get HTTP status 400 with invalid json",
+			route:        "/api/shorten/batch",
+			expectedCode: http.StatusBadRequest,
+			json:         "{\"url\": \"<some_url>\"",
+			error:        "Invalid json",
+		},
+	}
+
+	for _, test := range tests {
+		b := bytes.NewBuffer([]byte(test.json))
+		req := httptest.NewRequest(http.MethodPost, test.route, b)
+
+		resp, _ := s.App.Test(req, 5)
+		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+		if test.expectedCode != http.StatusCreated {
+			e, _ := io.ReadAll(resp.Body)
+			assert.Equalf(t, test.error, string(e), test.description)
+		} else {
+			e, _ := io.ReadAll(resp.Body)
+			assert.Equalf(t, test.expectedResult, string(e), test.description)
+		}
+
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+}
