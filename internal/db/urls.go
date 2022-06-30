@@ -86,12 +86,12 @@ func (d *Database) InsertMany(m []models.CustomIDSet) ([]models.CustomIDSet, err
 		err := rows.Scan(&i)
 		if err != nil {
 			stmt := `insert into Urls(id,url,deleted) values($1,$2,$3)`
-			rows, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL, false)
+			row, err := d.Conn.Query(stmt, el.CorrelationID, el.OriginalURL, false)
 			if err != nil {
 				continue
 			}
-			if rows.Err() != nil {
-				log.Println(rows.Err())
+			if row.Err() != nil {
+				log.Println(row.Err())
 			}
 			res = append(res, models.CustomIDSet{CorrelationID: el.CorrelationID, ShortURL: el.CorrelationID})
 			continue
