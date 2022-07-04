@@ -3,6 +3,7 @@ package service
 
 import (
 	"log"
+	"net/http"
 	_ "net/http/pprof"
 	"sync"
 
@@ -62,6 +63,17 @@ func StartService() {
 	s.App.Get("/api/user/urls", s.UserUrlsGet)
 	s.App.Post("/api/shorten/batch", s.SetMany)
 	s.App.Delete("/api/user/urls", s.AsyncDelete)
-	log.Println(s.App.Listen(s.Cfg.ServerAddress))
+
+	connectionsClosed := make(chan struct{})
+	go s.GracefulShutdown(connectionsClosed)
+
+	if err = s.Listen(); err == http.ErrServerClosed {
+		log.Println(err)
+	} else {
+		<-connectionsClosed
+		log.Println("Success closed")
+	}
+
+	close(chanForDelete)
 	wt.Wait()
 }

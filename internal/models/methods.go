@@ -2,6 +2,7 @@ package models
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,13 +14,51 @@ import (
 	"github.com/google/uuid"
 )
 
+func flagExist(flagName string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == flagName {
+			found = true
+		}
+	})
+	return found
+}
+
+func mergeConfigs(mainConf *Config, tmp Config) {
+	if _, existEnv := os.LookupEnv("SERVER_ADDRESS"); !existEnv {
+		if !flagExist("a") {
+			mainConf.ServerAddress = tmp.ServerAddress
+		}
+	}
+	if _, existEnv := os.LookupEnv("BASE_URL"); !existEnv {
+		if !flagExist("b") {
+			mainConf.URLBase = tmp.URLBase
+		}
+	}
+	if _, existEnv := os.LookupEnv("FILE_STORAGE_PATH"); !existEnv {
+		if !flagExist("f") {
+			mainConf.FileStoragePath = tmp.FileStoragePath
+		}
+	}
+	if _, existEnv := os.LookupEnv("DATABASE_DSN"); !existEnv {
+		if !flagExist("d") {
+			mainConf.DatabaseDsn = tmp.DatabaseDsn
+		}
+	}
+	if _, existEnv := os.LookupEnv("ENABLE_HTTPS"); !existEnv {
+		if !flagExist("s") {
+			mainConf.EnableTLS = tmp.EnableTLS
+		}
+	}
+}
+
 func (c *Config) Init() error {
 	err := env.Parse(c)
 	if err != nil {
 		return err
 	}
 	if c.ServerAddress == "" {
-		flag.StringVar(&c.ServerAddress, "a", "localhost:8080", "Server address")
+		flag.StringVar(&c.ServerAddress, "a", "localhost:8081", "Server address")
 	}
 	if c.URLBase == "" {
 		flag.StringVar(&c.URLBase, "b", "http://127.0.0.1:8080", "Base url")
@@ -31,16 +70,42 @@ func (c *Config) Init() error {
 		flag.StringVar(&c.DatabaseDsn, "d", "", "Database address")
 	}
 
+	if _, exist := os.LookupEnv("ENABLE_HTTPS"); !exist {
+		flag.BoolVar(&c.EnableTLS, "s", false, "Enable https")
+	}
+
+	var configPath string
+	if path, exist := os.LookupEnv("CONFIG"); !exist {
+		flag.StringVar(&configPath, "c", "", "Use config file")
+	} else {
+		configPath = path
+	}
+
 	flag.Parse()
+
+	if configPath != "" {
+		var tmpConfig Config
+		configFile, err := os.ReadFile(configPath)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(configFile, &tmpConfig)
+		if err != nil {
+			return err
+		}
+
+		mergeConfigs(c, tmpConfig)
+	}
 
 	return nil
 }
 
-func initData() Data {
+func initData() data {
 	return make(map[string]string)
 }
 
-func initUsers() Users {
+func initUsers() users {
 	return make(map[string][]string)
 }
 
@@ -109,15 +174,17 @@ func setToFile(k, v, pth string) {
 	}
 }
 
+// UsersGet - вовзращает ссылки по id пользователя
 func (s *Storage) UsersGet(id string) ([]string, error) {
 	urls, ok := s.Users[id]
 	if !ok {
-		return nil, errors.New("unknown user")
+		return []string{}, nil
 	}
 
 	return urls, nil
 }
 
+// UsersSet - добавляет пользователю новую ссылку
 func (s *Storage) UsersSet(id, url string) error {
 	urls, ok := s.Users[id]
 	if !ok {
@@ -128,6 +195,7 @@ func (s *Storage) UsersSet(id, url string) error {
 	return nil
 }
 
+// GetUrlsForUser - возвращает все ссылки по массиву id
 func (s *Storage) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 	var res []UserResponse
 	for _, id := range ids {
@@ -139,10 +207,12 @@ func (s *Storage) GetUrlsForUser(ids []string) ([]UserResponse, error) {
 	return res, nil
 }
 
+// Ping - говорит, что это не бд
 func (s *Storage) Ping() error {
 	return errors.New("i'm not db")
 }
 
+// InsertMany - добавляет несколько новых ссылок с кастомными id
 func (s *Storage) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 	var res []CustomIDSet
 	for _, el := range m {

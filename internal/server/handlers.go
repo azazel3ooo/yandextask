@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/azazel3ooo/yandextask/internal/models"
@@ -12,6 +13,7 @@ import (
 	"github.com/ugorji/go/codec"
 )
 
+// Getter - метод сервера, который предназначен для редиректа по короткой ссылку
 func (s *Server) Getter(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if _, err := uuid.Parse(id); err != nil {
@@ -41,6 +43,7 @@ func (s *Server) Getter(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusTemporaryRedirect)
 }
 
+// Setter - метод сервера, который осуществляет создание новой короткой ссылки. Тело запроса - string
 func (s *Server) Setter(c *fiber.Ctx) error {
 	body := c.Body()
 	u, err := url.ParseRequestURI(string(body))
@@ -79,6 +82,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).SendString(result)
 }
 
+// JSONSetter - метод сервера, который осуществляет создание новой короткой ссылки. Тело запроса - json
 func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	var req models.Request
 	body := c.Body()
@@ -126,6 +130,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 	})
 }
 
+// UserUrlsGet - метод сервера, который возвращает полный список всех ссылок пользователя по его cookie
 func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	ck := readCookie(c)
 	tmp, uid := setCookie()
@@ -156,6 +161,7 @@ func (s *Server) UserUrlsGet(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(res)
 }
 
+// Ping - проверяет соединение с базой данных
 func (s *Server) Ping(c *fiber.Ctx) error {
 	if err := s.Storage.Ping(); err != nil {
 		return c.SendStatus(http.StatusInternalServerError)
@@ -164,6 +170,7 @@ func (s *Server) Ping(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
+// SetMany - метод сервера, который осуществляет множественное добалвение коротких ссылок с кастомными id
 func (s *Server) SetMany(c *fiber.Ctx) error {
 	var req []models.CustomIDSet
 	body := c.Body()
@@ -202,15 +209,18 @@ func (s *Server) SetMany(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(res)
 }
 
+// AsyncDelete - метод сервера, осуществляющий передачу ссылок в канал, для дальнейшего ассинхронного удаления
 func (s *Server) AsyncDelete(c *fiber.Ctx) error {
 	var (
 		ids          []string
 		idsForDelete []string
 	)
-	err := c.BodyParser(&ids)
-	if err != nil {
-		return c.Status(http.StatusBadRequest).SendString("invalid body")
-	}
+
+	bodyString := string(c.Body())
+	bodyString = strings.ReplaceAll(bodyString, "[", "")
+	bodyString = strings.ReplaceAll(bodyString, "]", "")
+	bodyString = strings.ReplaceAll(bodyString, "\"", "")
+	ids = strings.Split(bodyString, ",")
 
 	ck := readCookie(c)
 	tmp, uid := setCookie()

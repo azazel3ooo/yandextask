@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/azazel3ooo/yandextask/internal/models"
 	"github.com/gofiber/fiber/v2"
@@ -309,6 +310,140 @@ func TestServer_SetMany(t *testing.T) {
 		}
 
 		err := resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+}
+
+func TestServer_AsyncDelete(t *testing.T) {
+	type set struct {
+		description  string
+		route        string
+		expectedCode int
+		json         string
+		error        string
+	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+	)
+	c := make(chan []string, 100)
+	defer close(c)
+
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := NewServer(&store, cfg, tempApp, c)
+	s.App.Delete("/api/user/urls", s.AsyncDelete)
+
+	idForDelete, _ := s.Storage.Set("https://yandex.ru", "")
+	ck := &http.Cookie{
+		Name:    "user",
+		Value:   "userID",
+		Expires: time.Now().Add(24 * 356 * time.Hour),
+	}
+	s.Storage.UsersSet("userID", idForDelete)
+
+	tests := []set{
+		{
+			description:  "get HTTP status 204",
+			route:        "/api/user/urls",
+			expectedCode: http.StatusNoContent,
+			json:         "[ \"a\", \"b\", \"c\", \"d\"]",
+		},
+		{
+			description:  "get HTTP status 202",
+			route:        "/api/user/urls",
+			expectedCode: http.StatusAccepted,
+			json:         "[\"" + idForDelete + "\"]",
+		},
+	}
+
+	for _, test := range tests {
+		b := bytes.NewBuffer([]byte(test.json))
+		req := httptest.NewRequest(http.MethodDelete, test.route, b)
+		req.AddCookie(ck)
+
+		resp, err := s.App.Test(req, -1)
+		if err != nil {
+			log.Println(err)
+		} else {
+			assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+			if test.expectedCode == http.StatusBadRequest {
+				e, _ := io.ReadAll(resp.Body)
+				assert.Equalf(t, test.error, string(e), test.description)
+			}
+		}
+
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+}
+
+func TestServer_UserUrlsGet(t *testing.T) {
+	type set struct {
+		description  string
+		route        string
+		expectedCode int
+		cookie       *http.Cookie
+		response     string
+	}
+
+	var (
+		store models.Storage
+		cfg   models.Config
+	)
+	c := make(chan []string, 100)
+	defer close(c)
+
+	store.Init(cfg)
+	tempApp := fiber.New()
+	s := NewServer(&store, cfg, tempApp, c)
+	s.App.Get("/api/user/urls", s.UserUrlsGet)
+
+	urlID, _ := s.Storage.Set("https://yandex.ru", "")
+	ck := &http.Cookie{
+		Name:    "user",
+		Value:   "userID",
+		Expires: time.Now().Add(24 * 356 * time.Hour),
+	}
+	s.Storage.UsersSet("userID", urlID)
+
+	tests := []set{
+		{
+			description:  "empty cookie",
+			route:        "/api/user/urls",
+			expectedCode: http.StatusNoContent,
+			cookie:       &http.Cookie{},
+		},
+		{
+			description:  "get http status 200",
+			route:        "/api/user/urls",
+			expectedCode: http.StatusOK,
+			cookie:       ck,
+			response:     "[{\"short_url\":\"/" + urlID + "\",\"original_url\":\"https://yandex.ru\"}]",
+		},
+	}
+
+	for _, test := range tests {
+		req := httptest.NewRequest(http.MethodGet, test.route, nil)
+		req.AddCookie(test.cookie)
+
+		resp, err := s.App.Test(req, -1)
+		if err != nil {
+			log.Println(err)
+		} else {
+			assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+			if test.expectedCode == http.StatusOK {
+				e, _ := io.ReadAll(resp.Body)
+				assert.Equalf(t, test.response, string(e), test.description)
+			}
+		}
+
+		err = resp.Body.Close()
 		if err != nil {
 			log.Println(err.Error())
 		}

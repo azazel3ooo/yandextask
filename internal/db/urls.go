@@ -7,6 +7,7 @@ import (
 	"log"
 )
 
+// Get - возвращает оригинальную ссылку по ее id
 func (d *Database) Get(key string) (string, error) {
 	stmt := `select url, deleted from Urls where id=$1`
 	rows, err := d.Conn.Query(stmt, key)
@@ -35,6 +36,7 @@ func (d *Database) Get(key string) (string, error) {
 	return url, nil
 }
 
+// Set - возвращает id для нвовой короткой ссылки
 func (d *Database) Set(val, pth string) (string, error) {
 	id := uuid.New()
 
@@ -72,6 +74,7 @@ func (d *Database) Set(val, pth string) (string, error) {
 	return id.String(), nil
 }
 
+// InsertMany - добавляет несколько новых ссылок с кастомными id
 func (d *Database) InsertMany(m []models.CustomIDSet) ([]models.CustomIDSet, error) {
 	var res []models.CustomIDSet
 
@@ -103,6 +106,7 @@ func (d *Database) InsertMany(m []models.CustomIDSet) ([]models.CustomIDSet, err
 	return res, nil
 }
 
+// Delete - "удаляет" ссылку, добавляя пометку об удалении
 func (d *Database) Delete(ids []string) error {
 	stmt := `update Urls SET deleted=true WHERE id=$1`
 	for _, id := range ids {

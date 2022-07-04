@@ -9,10 +9,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Database - структура базы данных
 type Database struct {
 	Conn *sql.DB
 }
 
+// Init - инициализация базы данных и ее таблиц
 func (d *Database) Init(cfg models.Config) {
 	name := "postgres"
 
@@ -40,6 +42,7 @@ func (d *Database) Init(cfg models.Config) {
 	d.Conn = db
 }
 
+// Ping - проверяет соединение с базой
 func (d *Database) Ping() error {
 	return d.Conn.Ping()
 }
