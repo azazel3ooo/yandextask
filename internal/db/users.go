@@ -8,6 +8,7 @@ import (
 	"github.com/azazel3ooo/yandextask/internal/models"
 )
 
+// UsersSet - добавляет пользователю новую ссылку
 func (d *Database) UsersSet(id, url string) error {
 	urls, err := d.UsersGet(id)
 	if err != nil {
@@ -24,6 +25,7 @@ func (d *Database) UsersSet(id, url string) error {
 	return nil
 }
 
+// UsersGet - вовзращает ссылки по id пользователя
 func (d *Database) UsersGet(id string) ([]string, error) {
 	stmt := `select urls from Users where id=$1`
 	row, err := d.Conn.Query(stmt, id)
@@ -46,6 +48,7 @@ func (d *Database) UsersGet(id string) ([]string, error) {
 	return strings.Split(s, ","), nil
 }
 
+// GetUrlsForUser - возвращает все ссылки по массиву id
 func (d *Database) GetUrlsForUser(ids []string) ([]models.UserResponse, error) {
 	for idx, id := range ids {
 		ids[idx] = fmt.Sprintf("'%s'", id)

@@ -7,31 +7,37 @@ type Config struct {
 	URLBase         string `env:"BASE_URL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn     string `env:"DATABASE_DSN"`
+	EnableTLS       bool   `env:"ENABLE_HTTPS"`
 }
 
-type Data map[string]string
+type data map[string]string
 
-type Users map[string][]string
+type users map[string][]string
 
+// Storage структура для хранения данных в памяти
 type Storage struct {
-	Data  Data
-	Users Users
+	Data  data
+	Users users
 }
 
+// Request - структура запроса для добавления ссылки
 type Request struct {
 	Addr string `json:"url"`
 }
 
+// Response - структура ответа после добавления короткой ссылки
 type Response struct {
 	Result string `json:"result"`
 }
 
+// CustomIDSet - структура запроса\ответа для множественного добавления коротких ссылок
 type CustomIDSet struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url,omitempty"`
 	ShortURL      string `json:"short_url,omitempty"`
 }
 
+// UserResponse - структура для вывода ссылок пользователя
 type UserResponse struct {
 	Short    string `json:"short_url"`
 	Original string `json:"original_url"`
