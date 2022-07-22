@@ -91,10 +91,16 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		})
 	}
 
+	// усложнилось обработка ошибок (для выбора правильного формата ответа), но в целом стало приятнее смотреть на хендлеры
 	res, err := logic.SetURL(req.Addr, uid, s.Storage, s.Cfg.FileStoragePath, s.Cfg.URLBase)
 	if err != nil {
 		code, _ := strconv.Atoi(res)
-		return c.Status(code).SendString(err.Error())
+		if code != http.StatusConflict {
+			return c.Status(code).SendString(err.Error())
+		}
+
+		c.Set("Content-Type", "application/json")
+		return c.Status(code).JSON(models.Response{Result: res})
 	}
 
 	c.Set("Content-Type", "application/json")
