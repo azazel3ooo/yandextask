@@ -1,5 +1,5 @@
-// Package server - содержит описание сруктуры сервера и хендлеров
-package server
+// Package httptransport - содержит описание сруктуры сервера и хендлеров
+package httptransport
 
 import (
 	"errors"
@@ -41,7 +41,7 @@ func (s *Server) Listen() (err error) {
 		err = s.App.Listen(s.Cfg.ServerAddress)
 
 	default:
-		err = errors.New("server.Listen() error: cfg.EnableTLS doesn't have value")
+		err = errors.New("httptransport.Listen() error: cfg.EnableTLS doesn't have value")
 	}
 	return err
 }

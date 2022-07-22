@@ -83,3 +83,22 @@ func (d *Database) GetUrlsForUser(ids []string) ([]models.UserResponse, error) {
 
 	return res, nil
 }
+
+func (d *Database) GetUserStat() (int, error) {
+	stmt := "SELECT COUNT(*) FROM Users"
+	row, err := d.Conn.Query(stmt)
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+
+	var size int
+	if row.Err() == nil && row.Next() {
+		err = row.Scan(&size)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return size, row.Err()
+}
