@@ -67,9 +67,9 @@ func InWhiteList(ip, subnet string) bool {
 	return strings.HasPrefix(ip, subnet)
 }
 
-func GetUrl(id string, storage models.Storable) (string, error) {
+func GetURL(id string, storage models.Storable) (string, error) {
 	if _, err := uuid.Parse(id); err != nil {
-		return "", errors.New("Невалидный id")
+		return "", errors.New("невалидный id")
 	}
 	fullURL, err := storage.Get(id)
 	if err != nil {
@@ -79,13 +79,13 @@ func GetUrl(id string, storage models.Storable) (string, error) {
 	return fullURL, nil
 }
 
-func SetUrl(u, user string, storage models.Storable, pathToFileStorage, baseURL string) (string, error) {
-	reqUrl, err := url.ParseRequestURI(u)
+func SetURL(u, user string, storage models.Storable, pathToFileStorage, baseURL string) (string, error) {
+	reqURL, err := url.ParseRequestURI(u)
 	if err != nil {
-		return strconv.Itoa(http.StatusBadRequest), errors.New("Invalid URL")
+		return strconv.Itoa(http.StatusBadRequest), errors.New("invalid URL")
 	}
 
-	id, err := storage.Set(reqUrl.String(), pathToFileStorage)
+	id, err := storage.Set(reqURL.String(), pathToFileStorage)
 	result := baseURL + "/" + id
 	if err != nil && id != "" {
 		return strconv.Itoa(http.StatusConflict), errors.New(result)
@@ -120,7 +120,7 @@ func SetMany(pairs []models.CustomIDSet, user string, storage models.Storable, b
 	for _, el := range pairs {
 		_, err := url.ParseRequestURI(el.OriginalURL)
 		if err != nil {
-			return nil, errors.New("Invalid URL")
+			return nil, errors.New("invalid URL")
 		}
 	}
 

@@ -92,7 +92,7 @@ func (c *urlsClient) GetStat(ctx context.Context, in *GetStatReq, opts ...grpc.C
 	return out, nil
 }
 
-// UrlsServer is the http_transport API for Urls service.
+// UrlsServer is the httptransport API for Urls service.
 // All implementations must embed UnimplementedUrlsServer
 // for forward compatibility
 type UrlsServer interface {

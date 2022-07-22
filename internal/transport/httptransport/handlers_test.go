@@ -1,4 +1,4 @@
-package http_transport
+package httptransport
 
 import (
 	"bytes"
@@ -111,7 +111,7 @@ func TestJSONSetter(t *testing.T) {
 			route:        "/api/shorten",
 			expectedCode: http.StatusBadRequest,
 			json:         "{\"url\": \"<some_url>\"}",
-			error:        "Invalid URL",
+			error:        "invalid URL",
 		},
 		{
 			description:  "get HTTP status 400 with invalid json",
@@ -284,7 +284,7 @@ func TestServer_SetMany(t *testing.T) {
 			route:        "/api/shorten/batch",
 			expectedCode: http.StatusBadRequest,
 			json:         "[{\"correlation_id\": \"123\", \"original_url\": \"bad url\"}]",
-			error:        "Invalid URL",
+			error:        "invalid URL",
 		},
 		{
 			description:  "get HTTP status 400 with invalid json",

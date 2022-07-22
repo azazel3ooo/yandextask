@@ -21,7 +21,7 @@ type ShortenerServer struct {
 func (s *ShortenerServer) Get(ctx context.Context, in *GetterRequest) (*GetterResponse, error) {
 	var res GetterResponse
 
-	url, err := logic.GetUrl(in.Id, s.storage)
+	url, err := logic.GetURL(in.Id, s.storage)
 	if err != nil {
 		res.Error = err.Error()
 	} else if url == "deleted" {
@@ -38,7 +38,7 @@ func (s *ShortenerServer) Set(ctx context.Context, in *SetterRequest) (*SetterRe
 		res SetterResponse
 	)
 
-	id, err := logic.SetUrl(in.Url, getUser(ctx), s.storage, s.cfg.FileStoragePath, s.cfg.URLBase)
+	id, err := logic.SetURL(in.Url, getUser(ctx), s.storage, s.cfg.FileStoragePath, s.cfg.URLBase)
 	if err != nil {
 		res.Error = err.Error()
 	} else {

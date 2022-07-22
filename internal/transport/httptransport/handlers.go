@@ -1,4 +1,4 @@
-package http_transport
+package httptransport
 
 import (
 	"github.com/azazel3ooo/yandextask/internal/logic"
@@ -17,7 +17,7 @@ import (
 func (s *Server) Getter(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	fullURL, err := logic.GetUrl(id, s.Storage)
+	fullURL, err := logic.GetURL(id, s.Storage)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
@@ -59,7 +59,7 @@ func (s *Server) Setter(c *fiber.Ctx) error {
 		})
 	}
 
-	res, err := logic.SetUrl(string(body), uid, s.Storage, s.Cfg.FileStoragePath, s.Cfg.URLBase)
+	res, err := logic.SetURL(string(body), uid, s.Storage, s.Cfg.FileStoragePath, s.Cfg.URLBase)
 	if err != nil {
 		code, _ := strconv.Atoi(res)
 		return c.Status(code).SendString(err.Error())
@@ -91,7 +91,7 @@ func (s *Server) JSONSetter(c *fiber.Ctx) error {
 		})
 	}
 
-	res, err := logic.SetUrl(req.Addr, uid, s.Storage, s.Cfg.FileStoragePath, s.Cfg.URLBase)
+	res, err := logic.SetURL(req.Addr, uid, s.Storage, s.Cfg.FileStoragePath, s.Cfg.URLBase)
 	if err != nil {
 		code, _ := strconv.Atoi(res)
 		return c.Status(code).SendString(err.Error())

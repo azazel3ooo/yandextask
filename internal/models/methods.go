@@ -73,7 +73,7 @@ func (c *Config) Init() error {
 		flag.StringVar(&c.Subnet, "t", "", "Subnet")
 	}
 	if c.GAddress == "" {
-		flag.StringVar(&c.ServerAddress, "g", "localhost:8082", "Grpc address")
+		flag.StringVar(&c.GAddress, "g", "localhost:8082", "Grpc address")
 	}
 
 	if _, exist := os.LookupEnv("ENABLE_HTTPS"); !exist {

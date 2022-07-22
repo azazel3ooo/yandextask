@@ -4,7 +4,7 @@ package service
 import (
 	"github.com/azazel3ooo/yandextask/internal/logic"
 	"github.com/azazel3ooo/yandextask/internal/transport/grpc"
-	"github.com/azazel3ooo/yandextask/internal/transport/http_transport"
+	"github.com/azazel3ooo/yandextask/internal/transport/httptransport"
 	"log"
 	"net"
 	"net/http"
@@ -54,7 +54,7 @@ func StartService() {
 	app.Use(pprof.New())
 
 	chanForDelete := make(chan []string, 10)
-	s := http_transport.NewServer(store, cfg, app, chanForDelete)
+	s := httptransport.NewServer(store, cfg, app, chanForDelete)
 	wt := sync.WaitGroup{}
 	wt.Add(1)
 	go logic.FanIn(chanForDelete, &wt, s.Storage)

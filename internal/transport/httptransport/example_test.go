@@ -1,4 +1,4 @@
-package http_transport
+package httptransport
 
 import (
 	"github.com/azazel3ooo/yandextask/internal/db"
