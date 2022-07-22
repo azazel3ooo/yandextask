@@ -69,6 +69,12 @@ func (c *Config) Init() error {
 	if c.DatabaseDsn == "" {
 		flag.StringVar(&c.DatabaseDsn, "d", "", "Database address")
 	}
+	if c.Subnet == "" {
+		flag.StringVar(&c.Subnet, "t", "", "Subnet")
+	}
+	if c.GAddress == "" {
+		flag.StringVar(&c.ServerAddress, "g", "localhost:8082", "Grpc address")
+	}
 
 	if _, exist := os.LookupEnv("ENABLE_HTTPS"); !exist {
 		flag.BoolVar(&c.EnableTLS, "s", false, "Enable https")
@@ -226,4 +232,12 @@ func (s *Storage) InsertMany(m []CustomIDSet) ([]CustomIDSet, error) {
 func (s *Storage) Delete(ids []string) error {
 
 	return nil
+}
+
+func (s *Storage) GetUserStat() (int, error) {
+	return len(s.Users), nil
+}
+
+func (s *Storage) GetUrlsStat() (int, error) {
+	return len(s.Data), nil
 }

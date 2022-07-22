@@ -3,11 +3,13 @@ package models
 
 // Config структура конфигурации сервиса
 type Config struct {
-	ServerAddress   string `env:"SERVER_ADDRESS"`
-	URLBase         string `env:"BASE_URL"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDsn     string `env:"DATABASE_DSN"`
-	EnableTLS       bool   `env:"ENABLE_HTTPS"`
+	ServerAddress   string `env:"SERVER_ADDRESS" json:"server_address"`
+	URLBase         string `env:"BASE_URL" json:"url_base"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" json:"file_storage_path"`
+	DatabaseDsn     string `env:"DATABASE_DSN" json:"database_dsn"`
+	EnableTLS       bool   `env:"ENABLE_HTTPS" json:"enable_https"`
+	Subnet          string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	GAddress        string `env:"GRPC_ADDRESS" json:"grpc_address"`
 }
 
 type data map[string]string
@@ -18,6 +20,12 @@ type users map[string][]string
 type Storage struct {
 	Data  data
 	Users users
+}
+
+// StatInfo - стрктура, которую возвращает хендлер статистики
+type StatInfo struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
 }
 
 // Request - структура запроса для добавления ссылки
@@ -54,6 +62,7 @@ type userStorable interface {
 	UsersGet(id string) ([]string, error)
 	UsersSet(id, url string) error
 	GetUrlsForUser(ids []string) ([]UserResponse, error)
+	GetUserStat() (int, error)
 }
 
 // urlsStorable содержит методы необхожимые для работы с таблицами урлов
@@ -63,4 +72,5 @@ type urlsStorable interface {
 	Ping() error
 	InsertMany(m []CustomIDSet) ([]CustomIDSet, error)
 	Delete(ids []string) error
+	GetUrlsStat() (int, error)
 }

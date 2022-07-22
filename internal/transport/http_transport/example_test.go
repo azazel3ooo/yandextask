@@ -1,7 +1,8 @@
-package server
+package http_transport
 
 import (
 	"github.com/azazel3ooo/yandextask/internal/db"
+	"github.com/azazel3ooo/yandextask/internal/logic"
 	"github.com/azazel3ooo/yandextask/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"log"
@@ -125,7 +126,7 @@ func ExampleServer_AsyncDelete() {
 	// запускаем вотчер для асинхронного удаления
 	wt := sync.WaitGroup{}
 	wt.Add(1)
-	go FanIn(chanForDelete, &wt, s.Storage)
+	go logic.FanIn(chanForDelete, &wt, s.Storage)
 
 	s.App.Delete("/api/user/urls", s.AsyncDelete)
 	log.Println(s.App.Listen(s.Cfg.ServerAddress))
