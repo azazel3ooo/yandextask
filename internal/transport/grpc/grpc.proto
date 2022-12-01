@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "internal/transport/grpc";
+
+message GetterRequest {
+  string id = 1;
+}
+
+message GetterResponse {
+  string url = 1;
+  string error = 2;
+}
+
+// для setter и jsonSetter одинаковые структуры
+message SetterRequest {
+  string url = 1;
+}
+
+message SetterResponse {
+  string result = 1;
+  string error = 2;
+}
+
+message UserUrlsRequest {
+  string user = 1;
+}
+
+message UserUrlsResponse {
+  message UrlsPair {
+    string short = 1;
+    string original = 2;
+  }
+  repeated UrlsPair result = 1;
+  string error = 2;
+}
+
+message SetManyRequest {
+  message CustomIDSetReq {
+    string id = 1;
+    string original = 2;
+  }
+  repeated CustomIDSetReq set = 1;
+}
+
+message SetManyResponse {
+  message CustomIDSetResp {
+    string id = 1;
+    string original = 2;
+    string short = 3;
+  }
+  repeated CustomIDSetResp set = 1;
+  string error = 2;
+}
+
+message AsyncDeleteReq {
+  repeated string array = 1;
+}
+
+message AsyncDeleteResp {
+  string status = 1;
+  string error = 2;
+}
+
+message GetStatReq {
+  string ping = 1;
+}
+
+message GetStatResp {
+  int32 users = 1;
+  int32 urls = 2;
+  string error = 3;
+}
+
+service Urls {
+  rpc Get(GetterRequest) returns (GetterResponse);
+  rpc Set(SetterRequest) returns (SetterResponse);
+  rpc UserUrls(UserUrlsRequest) returns (UserUrlsResponse);
+  rpc SetMany(SetManyRequest) returns (SetManyResponse);
+  rpc AsyncDelete(AsyncDeleteReq) returns (AsyncDeleteResp);
+  rpc GetStat(GetStatReq) returns (GetStatResp);
+}
